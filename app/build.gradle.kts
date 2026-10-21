@@ -9,11 +9,8 @@ plugins {
 }
 
 android {
-    compileSdk 35 // atau 34
-
-    defaultConfig {
-        targetSdk 35 // atau 34
-        // ...
+    compileSdk = 35
+targetSdk = 35
     }
 }
 
