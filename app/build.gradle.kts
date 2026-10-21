@@ -19,29 +19,49 @@ android {
         versionName = "1.0"
     }
 
-    // Hapus atau komentari bagian signingConfigs sementara waktu agar tidak error
-    // signingConfigs {
-    //     create("release") {
-    //         ...
-    //     }
-    // }
-
-    buildTypes {
-        getByName("release") {
-            isMinifyEnabled = false
-            // signingConfig = signingConfigs.getByName("release") // Komentari juga baris ini jika ada
+    signingConfigs {
+        create("release") {
+            storeFile = file(System.getenv("KEYSTORE_PATH") ?: "my-upload-key.jks")
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "android"
+            keyAlias = System.getenv("KEY_ALIAS") ?: "androiddebugkey"
+            keyPassword = System.getenv("KEY_PASSWORD") ?: "android"
+        }
+        create("debugConfig") {
+            storeFile = file("${rootDir}/debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
         }
     }
-}
+
+    buildTypes {
+        release {
+            isCrunchPngs = false
+            isMinifyEnabled = false
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.getByName("release")
+        }
+        debug {
+            signingConfig = signingConfigs.getByName("debugConfig")
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     buildFeatures {
         compose = true
         buildConfig = true
     }
-    testOptions { unitTests { isIncludeAndroidResources = true } }
+
+    testOptions { 
+        unitTests { 
+            isIncludeAndroidResources = true 
+        } 
+    }
+
     dependenciesInfo {
         includeInApk = false
         includeInBundle = true
