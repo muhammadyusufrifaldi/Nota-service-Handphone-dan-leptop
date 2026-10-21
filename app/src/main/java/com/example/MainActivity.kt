@@ -1,4 +1,4 @@
-package com.aistudio.sesmartcell.srvnot
+package com.example
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
