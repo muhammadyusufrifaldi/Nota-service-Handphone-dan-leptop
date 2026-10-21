@@ -171,4 +171,61 @@ class ServiceViewModel(application: Application) : AndroidViewModel(application)
 
     fun addPaymentRecord(
         noteNumber: String,
-        amount: Long
+        amount: Long,
+        method: String,
+        refNumber: String,
+        type: String,
+        onSuccess: () -> Unit
+    ) {
+        viewModelScope.launch {
+            val payment = PaymentRecordEntity(
+                noteNumber = noteNumber,
+                amount = amount,
+                paymentMethod = method,
+                referenceNumber = refNumber,
+                paymentDate = System.currentTimeMillis(),
+                paymentType = type,
+                isVerified = true
+            )
+            val id = repository.addPayment(payment)
+            firestoreSync.syncPaymentToCloud(payment.copy(id = id))
+            onSuccess()
+        }
+    }
+
+    fun deleteNote(note: ServiceNoteEntity, onDeleted: () -> Unit) {
+        viewModelScope.launch {
+            repository.deleteNote(note)
+            firestoreSync.deleteNoteFromCloud(note.noteNumber)
+            onDeleted()
+        }
+    }
+
+    fun updateStoreSettings(settings: StoreSettingsEntity, onSaved: () -> Unit) {
+        viewModelScope.launch {
+            repository.updateSettings(settings)
+            firestoreSync.syncSettingsToCloud(settings)
+            onSaved()
+        }
+    }
+
+    suspend fun getNextNoteNumber(): String {
+        return repository.generateNextNoteNumber()
+    }
+
+    fun getCsvReport(): String {
+        return repository.generateCsvReport(allNotes.value, allPayments.value)
+    }
+}
+
+data class DashboardStats(
+    val notesToday: Int,
+    val inProgressCount: Int,
+    val completedCount: Int,
+    val waitingCount: Int,
+    val revenueToday: Long,
+    val revenueMonth: Long,
+    val totalRevenueAll: Long,
+    val totalPiutang: Long,
+    val totalNotes: Int
+)
