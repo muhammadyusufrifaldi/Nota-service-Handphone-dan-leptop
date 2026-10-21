@@ -1,4 +1,4 @@
-package com.example.ui.screens
+package com.aistudio.sesmartcell.srvnot.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -27,7 +27,6 @@ import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Send
@@ -63,20 +62,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.R
-import com.example.data.entity.ServiceNoteEntity
-import com.example.ui.ServiceViewModel
-import com.example.ui.components.DeviceTypeBadge
-import com.example.ui.components.PaymentStatusBadge
-import com.example.ui.components.StatusBadge
-import com.example.ui.theme.PrimaryBlue
-import com.example.ui.theme.PrimaryBlueDark
-import com.example.ui.theme.PrimaryBlueLight
-import com.example.ui.theme.StatusPurple
-import com.example.ui.theme.StatusSuccess
-import com.example.ui.theme.StatusWarning
-import com.example.util.FormatUtils
-import com.example.util.WhatsAppHelper
+import com.aistudio.sesmartcell.srvnot.R
+import com.aistudio.sesmartcell.srvnot.data.entity.ServiceNoteEntity
+import com.aistudio.sesmartcell.srvnot.ui.ServiceViewModel
+import com.aistudio.sesmartcell.srvnot.ui.components.DeviceTypeBadge
+import com.aistudio.sesmartcell.srvnot.ui.components.PaymentStatusBadge
+import com.aistudio.sesmartcell.srvnot.ui.components.StatusBadge
+import com.aistudio.sesmartcell.srvnot.ui.theme.PrimaryBlue
+import com.aistudio.sesmartcell.srvnot.ui.theme.PrimaryBlueLight
+import com.aistudio.sesmartcell.srvnot.util.FormatUtils
+import com.aistudio.sesmartcell.srvnot.util.WhatsAppHelper
 
 @Composable
 fun DashboardScreen(
@@ -120,7 +115,6 @@ fun DashboardScreen(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(bottom = 96.dp)
         ) {
-            // Header Store Banner
             item {
                 StoreHeroHeader(
                     storeName = storeSettings.storeName,
@@ -129,7 +123,6 @@ fun DashboardScreen(
                 )
             }
 
-            // Stat Cards Grid (2x2)
             item {
                 Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
                     Text(
@@ -188,7 +181,6 @@ fun DashboardScreen(
                 }
             }
 
-            // Search Bar & Filter Chips
             item {
                 Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
                     OutlinedTextField(
@@ -238,7 +230,6 @@ fun DashboardScreen(
                 }
             }
 
-            // Recent Notes Header
             item {
                 Row(
                     modifier = Modifier
@@ -259,7 +250,6 @@ fun DashboardScreen(
                 }
             }
 
-            // Note Item Cards
             if (displayNotes.isEmpty()) {
                 item {
                     EmptyNotesPlaceholder(searchQuery = searchQuery)
@@ -283,7 +273,6 @@ fun DashboardScreen(
             }
         }
 
-        // Floating Action Button to Create Note
         FloatingActionButton(
             onClick = onNavigateToCreate,
             containerColor = PrimaryBlue,
@@ -363,7 +352,6 @@ fun StoreHeroHeader(
 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                // Store App Icon / Logo
                 Box(
                     modifier = Modifier
                         .size(68.dp)
@@ -461,7 +449,6 @@ fun DashboardNoteCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 1.5.dp)
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
-            // Row 1: Note Number, Date, Status
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -482,7 +469,6 @@ fun DashboardNoteCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Row 2: Customer Name, Phone & Device Model
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -504,7 +490,6 @@ fun DashboardNoteCard(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Issue description
             Text(
                 text = "Keluhan: ${note.issueDescription}",
                 fontSize = 12.sp,
@@ -515,7 +500,6 @@ fun DashboardNoteCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Row 3: Financial Summary & WhatsApp button
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
