@@ -79,7 +79,8 @@ secrets {
 }
 
 googleServices {
-    isMissingGoogleServicesStrategy = MissingGoogleServicesStrategy.WARN
+    // Ubah menggunakan string "warn" agar langsung dikenali oleh plugin
+    val missingGoogleServicesStrategy = "warn"
 }
 
 dependencies {
