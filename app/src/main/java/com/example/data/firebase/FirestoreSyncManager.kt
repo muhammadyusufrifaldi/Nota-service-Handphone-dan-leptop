@@ -1,12 +1,12 @@
-package com.example.data.firebase
+package com.aistudio.sesmartcell.srvnot.data.firebase
 
 import android.content.Context
 import android.util.Log
-import com.example.R
-import com.example.auth.AuthManager
-import com.example.data.entity.PaymentRecordEntity
-import com.example.data.entity.ServiceNoteEntity
-import com.example.data.entity.StoreSettingsEntity
+import com.aistudio.sesmartcell.srvnot.R
+import com.aistudio.sesmartcell.srvnot.auth.AuthManager
+import com.aistudio.sesmartcell.srvnot.data.entity.PaymentRecordEntity
+import com.aistudio.sesmartcell.srvnot.data.entity.ServiceNoteEntity
+import com.aistudio.sesmartcell.srvnot.data.entity.StoreSettingsEntity
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
