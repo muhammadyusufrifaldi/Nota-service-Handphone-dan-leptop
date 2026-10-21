@@ -44,19 +44,19 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.aistudio.sesmartcell.srvnot.auth.AppUser
-import com.aistudio.sesmartcell.srvnot.auth.AuthManager
-import com.aistudio.sesmartcell.srvnot.ui.ServiceViewModel
-import com.aistudio.sesmartcell.srvnot.ui.screens.AuthScreen
-import com.aistudio.sesmartcell.srvnot.ui.screens.CreateEditNoteScreen
-import com.aistudio.sesmartcell.srvnot.ui.screens.DashboardScreen
-import com.aistudio.sesmartcell.srvnot.ui.screens.DocumentationScreen
-import com.aistudio.sesmartcell.srvnot.ui.screens.ReportsScreen
-import com.aistudio.sesmartcell.srvnot.ui.screens.ServiceDetailScreen
-import com.aistudio.sesmartcell.srvnot.ui.screens.ServiceListScreen
-import com.aistudio.sesmartcell.srvnot.ui.screens.SettingsScreen
-import com.aistudio.sesmartcell.srvnot.ui.theme.MyApplicationTheme
-import com.aistudio.sesmartcell.srvnot.ui.theme.PrimaryBlue
+import com.example.auth.AppUser
+import com.example.auth.AuthManager
+import com.example.ui.ServiceViewModel
+import com.example.ui.screens.AuthScreen
+import com.example.ui.screens.CreateEditNoteScreen
+import com.example.ui.screens.DashboardScreen
+import com.example.ui.screens.DocumentationScreen
+import com.example.ui.screens.ReportsScreen
+import com.example.ui.screens.ServiceDetailScreen
+import com.example.ui.screens.ServiceListScreen
+import com.example.ui.screens.SettingsScreen
+import com.example.ui.theme.MyApplicationTheme
+import com.example.ui.theme.PrimaryBlue
 import com.google.firebase.auth.FirebaseAuth
 
 enum class AppScreen {
