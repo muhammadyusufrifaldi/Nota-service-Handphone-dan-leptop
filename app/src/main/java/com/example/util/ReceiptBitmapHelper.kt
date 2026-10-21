@@ -1,4 +1,4 @@
-package com.aistudio.sesmartcell.srvnot
+package com.aistudio.sesmartcell.srvnot.util
 
 import android.content.ContentValues
 import android.content.Context
@@ -7,7 +7,6 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Typeface
 import android.net.Uri
@@ -42,41 +41,34 @@ object ReceiptBitmapHelper {
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
 
-        // Background
         canvas.drawColor(Color.WHITE)
 
         val paint = Paint().apply {
             isAntiAlias = true
         }
 
-        // Top Header Banner (Deep Blue #0F172A to #1E3A8A)[cite: 15]
         paint.color = Color.parseColor("#0F172A")
         canvas.drawRect(0f, 0f, width.toFloat(), 260f, paint)
 
-        // Accent line
         paint.color = Color.parseColor("#2563EB")
         canvas.drawRect(0f, 252f, width.toFloat(), 260f, paint)
 
-        // Header Title[cite: 15]
         paint.color = Color.WHITE
         paint.textSize = 52f
         paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         paint.textAlign = Paint.Align.CENTER
         canvas.drawText(store.storeName, width / 2f, 90f, paint)
 
-        // Header Subtitle[cite: 15]
         paint.textSize = 28f
         paint.typeface = Typeface.DEFAULT
         paint.color = Color.parseColor("#93C5FD")
         canvas.drawText(store.storeTagline, width / 2f, 135f, paint)
 
-        // Header Address & Phone[cite: 15]
         paint.textSize = 24f
         paint.color = Color.parseColor("#CBD5E1")
         canvas.drawText(store.storeAddress, width / 2f, 175f, paint)
         canvas.drawText("WhatsApp: ${store.storePhone}", width / 2f, 215f, paint)
 
-        // Receipt Type Tag[cite: 15]
         val typeBadgeRect = RectF(60f, 290f, width - 60f, 360f)
         paint.color = when (type) {
             ReceiptType.PELUNASAN -> Color.parseColor("#065F46")
@@ -90,13 +82,11 @@ object ReceiptBitmapHelper {
         paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         canvas.drawText(type.title, width / 2f, 336f, paint)
 
-        // Reset text alignment for body
         paint.textAlign = Paint.Align.LEFT
         var yPos = 410f
         val margin = 60f
         val rightEdge = width - 60f
 
-        // Box 1: Info Transaksi & Pelanggan[cite: 15]
         paint.color = Color.parseColor("#F1F5F9")
         canvas.drawRoundRect(RectF(margin, yPos, rightEdge, yPos + 180f), 16f, 16f, paint)
 
@@ -118,7 +108,6 @@ object ReceiptBitmapHelper {
 
         yPos += 210f
 
-        // Box 2: Perangkat & Kerusakan[cite: 15]
         paint.color = Color.parseColor("#F8FAFC")
         paint.style = Paint.Style.FILL
         canvas.drawRoundRect(RectF(margin, yPos, rightEdge, yPos + 270f), 16f, 16f, paint)
@@ -152,7 +141,6 @@ object ReceiptBitmapHelper {
 
         yPos += 300f
 
-        // Box 3: Rincian Biaya[cite: 15]
         paint.color = Color.parseColor("#0F172A")
         paint.textSize = 28f
         paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
@@ -178,7 +166,6 @@ object ReceiptBitmapHelper {
             drawCostRow("Potongan Diskon", "- " + FormatUtils.formatRupiah(note.discount))
         }
 
-        // Line
         paint.color = Color.parseColor("#94A3B8")
         paint.strokeWidth = 2f
         canvas.drawLine(margin + 20f, yPos - 10f, rightEdge - 20f, yPos - 10f, paint)
@@ -193,7 +180,6 @@ object ReceiptBitmapHelper {
 
         yPos += 30f
 
-        // Status & Garansi Card[cite: 15]
         val statusRect = RectF(margin, yPos, rightEdge, yPos + 110f)
         paint.color = Color.parseColor("#EFF6FF")
         canvas.drawRoundRect(statusRect, 16f, 16f, paint)
@@ -209,7 +195,6 @@ object ReceiptBitmapHelper {
 
         yPos += 140f
 
-        // Terms info[cite: 15]
         paint.color = Color.parseColor("#64748B")
         paint.textSize = 19f
         paint.typeface = Typeface.DEFAULT
@@ -218,19 +203,16 @@ object ReceiptBitmapHelper {
 
         yPos += 80f
 
-        // Signature columns[cite: 15]
         paint.color = Color.parseColor("#334155")
         paint.textSize = 24f
         paint.typeface = Typeface.DEFAULT
         paint.textAlign = Paint.Align.CENTER
 
-        // Customer sign
         val signX1 = margin + 200f
         canvas.drawText("Tanda Tangan Pelanggan", signX1, yPos + 30f, paint)
         canvas.drawLine(signX1 - 140f, yPos + 140f, signX1 + 140f, yPos + 140f, paint)
         canvas.drawText("(${note.customerName})", signX1, yPos + 175f, paint)
 
-        // Store sign
         val signX2 = rightEdge - 200f
         canvas.drawText("Teknisi / Admin", signX2, yPos + 30f, paint)
         canvas.drawLine(signX2 - 140f, yPos + 140f, signX2 + 140f, yPos + 140f, paint)
@@ -285,7 +267,6 @@ object ReceiptBitmapHelper {
     ) {
         val bitmap = generateReceiptBitmap(context, note, store, totalPaid, type)
         try {
-            // Save to cache for sharing
             val cachePath = File(context.cacheDir, "receipts")
             cachePath.mkdirs()
             val file = File(cachePath, "Nota_${note.noteNumber}.png")
