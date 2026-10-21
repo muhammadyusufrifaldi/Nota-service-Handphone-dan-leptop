@@ -1,4 +1,4 @@
-package com.aistudio.sesmartcell.srvnot.ui.screens
+package com.example.ui.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -54,9 +54,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.aistudio.sesmartcell.srvnot.auth.AuthManager
-import com.aistudio.sesmartcell.srvnot.ui.ServiceViewModel
-import com.aistudio.sesmartcell.srvnot.ui.theme.PrimaryBlue
+import com.example.auth.AuthManager
+import com.example.ui.ServiceViewModel
+import com.example.ui.theme.PrimaryBlue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
