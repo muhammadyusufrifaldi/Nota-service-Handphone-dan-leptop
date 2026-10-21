@@ -1,4 +1,5 @@
-package com.example.util
+package com.aistudio.sesmartcell.srvnot.data.entity.ServiceNoteEntity
+package com.aistudio.sesmartcell.srvnot.data.entity.StoreSettingsEntity
 
 import android.content.Context
 import android.graphics.Canvas
@@ -16,8 +17,8 @@ import android.print.PrintDocumentAdapter
 import android.print.PrintDocumentInfo
 import android.print.PrintManager
 import android.widget.Toast
-import com.example.data.entity.ServiceNoteEntity
-import com.example.data.entity.StoreSettingsEntity
+import com.aistudio.sesmartcell.srvnot.data.entity.ServiceNoteEntity
+import com.aistudio.sesmartcell.srvnot.data.entity.StoreSettingsEntity
 import java.io.FileOutputStream
 import java.io.IOException
 
