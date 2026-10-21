@@ -72,6 +72,8 @@ import com.aistudio.sesmartcell.srvnot.ui.theme.PrimaryBlue
 import com.aistudio.sesmartcell.srvnot.ui.theme.PrimaryBlueLight
 import com.aistudio.sesmartcell.srvnot.util.FormatUtils
 import com.aistudio.sesmartcell.srvnot.util.WhatsAppHelper
+import com.aistudio.sesmartcell.srvnot.util.PrintReceiptHelper
+import com.aistudio.sesmartcell.srvnot.util.ReceiptBitmapHelper
 
 @Composable
 fun DashboardScreen(
