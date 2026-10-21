@@ -30,19 +30,12 @@ jobs:
           distribution: temurin
           java-version: '21'
 
+      # The action defaults to installing the obsolete "tools" package when packages is omitted.
+      # The package list must have no spaces after commas because the action splits on commas.
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
-
-      - name: Install Android SDK packages
-        shell: bash
-        run: |
-          set -euo pipefail
-          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)"
-          if [[ -z "$SDKMANAGER" ]]; then
-            echo "sdkmanager was not found under ANDROID_HOME=$ANDROID_HOME"
-            exit 1
-          fi
-          "$SDKMANAGER" --install "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+        with:
+          packages: 'platform-tools,platforms;android-36,build-tools;36.0.0'
 
       - name: Prepare local build configuration
         shell: bash
@@ -54,13 +47,9 @@ jobs:
           if [[ ! -f .env ]]; then
             cp .env.example .env
           fi
-          # Supply your own Firebase config as a GitHub Actions secret when available.
-          # Store the complete google-services.json as base64 in FIREBASE_GOOGLE_SERVICES_JSON_B64.
           if [[ -n "${FIREBASE_GOOGLE_SERVICES_JSON_B64:-}" ]]; then
             printf '%s' "$FIREBASE_GOOGLE_SERVICES_JSON_B64" | base64 --decode > app/google-services.json
           fi
-          # Without a Firebase config the APK can compile, but Firebase sign-in/cloud sync
-          # will not work until app/google-services.json is added for this app/package.
           if [[ ! -f debug.keystore ]]; then
             keytool -genkeypair -v \
               -keystore debug.keystore \
