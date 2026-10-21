@@ -1,10 +1,9 @@
-package com.aistudio.sesmartcell.srvnot
+package com.aistudio.sesmartcell.srvnot.util
 
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.RectF
 import android.graphics.Typeface
 import android.graphics.pdf.PdfDocument
 import android.os.Bundle
@@ -55,7 +54,6 @@ object PrintReceiptHelper {
     ) : PrintDocumentAdapter() {
 
         private var pdfDocument: PdfDocument? = null
-        // 72 points per inch. 80mm ~ 226 pts, 58mm ~ 164 pts
         private val pageWidth = if (is80mm) 230 else 165
         private val pageHeight = 580
 
@@ -125,7 +123,6 @@ object PrintReceiptHelper {
             val right = pageWidth - 8f
             var y = 20f
 
-            // Store Title
             paint.textAlign = Paint.Align.CENTER
             paint.textSize = if (is80mm) 12f else 10f
             paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
@@ -141,13 +138,11 @@ object PrintReceiptHelper {
             y += 10f
             canvas.drawText("WA: ${store.storePhone}", pageWidth / 2f, y, paint)
 
-            // Divider
             y += 8f
             paint.strokeWidth = 0.8f
             canvas.drawLine(margin, y, right, y, paint)
             y += 12f
 
-            // Nota & Date
             paint.textAlign = Paint.Align.LEFT
             paint.textSize = 7.5f
             paint.typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
@@ -165,7 +160,6 @@ object PrintReceiptHelper {
             canvas.drawLine(margin, y, right, y, paint)
             y += 12f
 
-            // Device
             paint.typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
             canvas.drawText("UNIT: ${note.brand} ${note.model}", margin, y, paint)
             y += 10f
@@ -183,7 +177,6 @@ object PrintReceiptHelper {
             canvas.drawLine(margin, y, right, y, paint)
             y += 12f
 
-            // Financials
             fun printLine(label: String, value: String, bold: Boolean = false) {
                 paint.typeface = if (bold) Typeface.create(Typeface.MONOSPACE, Typeface.BOLD) else Typeface.MONOSPACE
                 paint.textAlign = Paint.Align.LEFT
@@ -211,7 +204,6 @@ object PrintReceiptHelper {
             canvas.drawLine(margin, y, right, y, paint)
             y += 12f
 
-            // Status & Garansi
             paint.textAlign = Paint.Align.LEFT
             paint.typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
             canvas.drawText("STATUS : ${note.serviceStatus.uppercase()}", margin, y, paint)
