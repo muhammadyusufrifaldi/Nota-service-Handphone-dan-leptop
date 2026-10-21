@@ -1,4 +1,4 @@
-package com.aistudio.sesmartcell.srvnot.ui.screens
+package com.example.ui.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -59,20 +59,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.aistudio.sesmartcell.srvnot.ui.ServiceViewModel
-import com.aistudio.sesmartcell.srvnot.ui.components.AddPaymentDialog
-import com.aistudio.sesmartcell.srvnot.ui.components.DeviceTypeBadge
-import com.aistudio.sesmartcell.srvnot.ui.components.ImageReceiptDialog
-import com.aistudio.sesmartcell.srvnot.ui.components.PaymentStatusBadge
-import com.aistudio.sesmartcell.srvnot.ui.components.PrintReceiptDialog
-import com.aistudio.sesmartcell.srvnot.ui.components.StatusBadge
-import com.aistudio.sesmartcell.srvnot.ui.theme.PrimaryBlue
-import com.aistudio.sesmartcell.srvnot.ui.theme.StatusError
-import com.aistudio.sesmartcell.srvnot.ui.theme.StatusSuccess
-import com.aistudio.sesmartcell.srvnot.util.FormatUtils
-import com.aistudio.sesmartcell.srvnot.util.WhatsAppHelper
-import com.aistudio.sesmartcell.srvnot.util.PrintReceiptHelper
-import com.aistudio.sesmartcell.srvnot.util.ReceiptBitmapHelper
+import com.example.ui.ServiceViewModel
+import com.example.ui.components.AddPaymentDialog
+import com.example.ui.components.DeviceTypeBadge
+import com.example.ui.components.ImageReceiptDialog
+import com.example.ui.components.PaymentStatusBadge
+import com.example.ui.components.PrintReceiptDialog
+import com.example.ui.components.StatusBadge
+import com.example.ui.theme.PrimaryBlue
+import com.example.ui.theme.StatusError
+import com.example.ui.theme.StatusSuccess
+import com.example.util.FormatUtils
+import com.example.util.WhatsAppHelper
+import com.example.util.PrintReceiptHelper
+import com.example.util.ReceiptBitmapHelper
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
