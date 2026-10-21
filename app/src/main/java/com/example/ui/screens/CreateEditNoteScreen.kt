@@ -1,7 +1,3 @@
-// ==========================================
-// 1. CreateEditNoteScreen.kt
-// Path: app/src/main/java/com/aistudio/sesmartcell/srvnot/ui/screens/CreateEditNoteScreen.kt
-// ==========================================
 package com.aistudio.sesmartcell.srvnot.ui.screens
 
 import android.widget.Toast
@@ -27,7 +23,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Laptop
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PhoneAndroid
@@ -36,15 +31,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -72,7 +64,6 @@ import com.aistudio.sesmartcell.srvnot.ui.theme.StatusSuccess
 import com.aistudio.sesmartcell.srvnot.util.FormatUtils
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Date
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -410,7 +401,7 @@ fun CreateEditNoteScreen(
                             FilterChip(
                                 selected = issueDescription.contains(p),
                                 onClick = {
-                                    issueDescription = if (issueDescription.isBlank()) p else "$issueDescription,$p"
+                                    issueDescription = if (issueDescription.isBlank()) p else "$issueDescription, $p"
                                 },
                                 label = { Text(p, fontSize = 11.sp) }
                             )
@@ -525,4 +516,195 @@ fun CreateEditNoteScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Text("Total Biaya Service:", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color
+                                Text("Total Biaya Service:", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = Color.Black)
+                                Text(FormatUtils.formatRupiah(totalCost), fontWeight = FontWeight.Bold, fontSize = 14.sp, color = PrimaryBlue)
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text("Sisa Pembayaran:", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = Color.Black)
+                                Text(
+                                    if (sisa <= 0) "LUNAS (Rp 0)" else FormatUtils.formatRupiah(sisa),
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    color = if (sisa <= 0) StatusSuccess else Color(0xFFDC2626)
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text("Metode Pembayaran Awal:", fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        listOf("Tunai", "QRIS", "Transfer Bank", "E-Wallet").forEach { method ->
+                            FilterChip(
+                                selected = paymentMethod == method,
+                                onClick = { paymentMethod = method },
+                                label = { Text(method, fontSize = 11.sp) }
+                            )
+                        }
+                    }
+                }
+            }
+
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Text("6. STATUS & JAMINAN GARANSI", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text("Status Pengerjaan:", fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    val statusOptions = listOf("Menunggu", "Sedang Dikerjakan", "Menunggu Sparepart", "Selesai", "Diambil Pelanggan")
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        statusOptions.forEach { st ->
+                            FilterChip(
+                                selected = serviceStatus == st,
+                                onClick = { serviceStatus = st },
+                                label = { Text(st, fontSize = 11.sp) }
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = estimatedDate,
+                            onValueChange = { estimatedDate = it },
+                            label = { Text("Estimasi Selesai") },
+                            modifier = Modifier.weight(1f)
+                        )
+                        OutlinedTextField(
+                            value = technicianName,
+                            onValueChange = { technicianName = it },
+                            label = { Text("Nama Teknisi") },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text("Masa Garansi Servis:", fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        listOf("Tidak Ada", "7 Hari", "14 Hari", "30 Hari", "90 Hari").forEach { g ->
+                            FilterChip(
+                                selected = warrantyPeriod == g,
+                                onClick = { warrantyPeriod = g },
+                                label = { Text(g, fontSize = 11.sp) }
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = notesAdditional,
+                        onValueChange = { notesAdditional = it },
+                        label = { Text("Catatan Tambahan") },
+                        placeholder = { Text("Cth: Sandi/pola layar kunci, kondisi lecet awal...") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+
+            Button(
+                onClick = {
+                    if (customerName.isBlank()) {
+                        Toast.makeText(context, "Mohon isi Nama Pelanggan", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+                    if (customerPhone.isBlank()) {
+                        Toast.makeText(context, "Mohon isi Nomor WhatsApp Pelanggan", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+                    if (brand.isBlank() || model.isBlank()) {
+                        Toast.makeText(context, "Mohon lengkapi Merek dan Model perangkat", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+                    if (issueDescription.isBlank()) {
+                        Toast.makeText(context, "Mohon isi keluhan / kerusakan perangkat", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+
+                    val finalAccessories = selectedAccessories.joinToString(", ")
+                    val noteEntity = ServiceNoteEntity(
+                        id = if (isEditMode) existingNoteId ?: 0L else 0L,
+                        noteNumber = noteNumber.ifBlank { "SC-${System.currentTimeMillis() % 100000}" },
+                        customerName = customerName.trim(),
+                        customerPhone = customerPhone.trim(),
+                        deviceType = deviceType,
+                        brand = brand.trim(),
+                        model = model.trim(),
+                        imeiOrSerial = imeiOrSerial.trim(),
+                        accessories = finalAccessories,
+                        issueDescription = issueDescription.trim(),
+                        technicianCheckResult = checkResult.trim(),
+                        repairAction = repairAction.trim(),
+                        serviceFee = serviceFee,
+                        sparepartFee = sparepartFee,
+                        discount = discount,
+                        downPayment = downPayment,
+                        estimatedCompletionDate = estimatedDate.trim(),
+                        technicianName = technicianName.trim(),
+                        serviceStatus = serviceStatus,
+                        warrantyPeriod = warrantyPeriod,
+                        warrantyEndDate = warrantyEndDate,
+                        initialPaymentMethod = paymentMethod,
+                        notes = notesAdditional.trim()
+                    )
+
+                    if (isEditMode) {
+                        viewModel.updateNote(noteEntity) {
+                            Toast.makeText(context, "Nota berhasil diperbarui!", Toast.LENGTH_SHORT).show()
+                            onNoteSaved(noteEntity.id)
+                        }
+                    } else {
+                        viewModel.saveNewNote(
+                            note = noteEntity,
+                            initialPayment = downPayment,
+                            paymentMethod = paymentMethod,
+                            refNumber = paymentRef
+                        ) { newId ->
+                            Toast.makeText(context, "Nota ${noteEntity.noteNumber} berhasil dibuat!", Toast.LENGTH_LONG).show()
+                            onNoteSaved(newId)
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+                    .testTag("save_note_submit_button"),
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(Icons.Default.Save, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = if (isEditMode) "Perbarui Nota Service" else "Simpan Nota Service",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
