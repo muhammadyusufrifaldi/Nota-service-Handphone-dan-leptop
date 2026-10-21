@@ -1,10 +1,8 @@
-package com.example.ui.screens
+package com.aistudio.sesmartcell.srvnot.ui.screens
 
 import android.content.Intent
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,9 +17,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.MonetizationOn
-import androidx.compose.material.icons.filled.PieChart
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -43,7 +37,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -54,11 +47,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.ui.ServiceViewModel
-import com.example.ui.theme.PrimaryBlue
-import com.example.ui.theme.StatusSuccess
-import com.example.ui.theme.StatusWarning
-import com.example.util.FormatUtils
+import com.aistudio.sesmartcell.srvnot.ui.ServiceViewModel
+import com.aistudio.sesmartcell.srvnot.ui.theme.PrimaryBlue
+import com.aistudio.sesmartcell.srvnot.ui.theme.StatusSuccess
+import com.aistudio.sesmartcell.srvnot.ui.theme.StatusWarning
+import com.aistudio.sesmartcell.srvnot.util.FormatUtils
 import java.io.File
 import java.io.FileOutputStream
 import java.util.Calendar
@@ -73,7 +66,7 @@ fun ReportsScreen(
     val notes by viewModel.allNotes.collectAsStateWithLifecycle()
     val payments by viewModel.allPayments.collectAsStateWithLifecycle()
 
-    var selectedPeriod by remember { mutableStateOf("Bulan Ini") } // "Hari Ini", "7 Hari", "Bulan Ini", "Semua"
+    var selectedPeriod by remember { mutableStateOf("Bulan Ini") }
 
     val cal = Calendar.getInstance()
     cal.set(Calendar.HOUR_OF_DAY, 0)
@@ -151,7 +144,6 @@ fun ReportsScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // Period Filter Chips
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -165,7 +157,6 @@ fun ReportsScreen(
                 }
             }
 
-            // Big Revenue Card
             Card(
                 shape = RoundedCornerShape(14.dp),
                 colors = CardDefaults.cardColors(containerColor = PrimaryBlue)
@@ -188,7 +179,6 @@ fun ReportsScreen(
                 }
             }
 
-            // Breakdown Table Card
             Card(
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
@@ -233,7 +223,6 @@ fun ReportsScreen(
                 }
             }
 
-            // Service Completion Status Progress Card
             Card(
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
@@ -279,7 +268,6 @@ fun ReportsScreen(
                 }
             }
 
-            // Export to CSV / Excel Button
             Button(
                 onClick = {
                     try {
