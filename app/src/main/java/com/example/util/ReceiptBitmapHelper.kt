@@ -1,5 +1,5 @@
-import com.aistudio.sesmartcell.srvnot.data.entity.ServiceNoteEntity
-import com.aistudio.sesmartcell.srvnot.data.entity.StoreSettingsEntity
+package com.aistudio.sesmartcell.srvnot.data.entity.ServiceNoteEntity
+package com.aistudio.sesmartcell.srvnot.data.entity.StoreSettingsEntity
 
 import android.content.ContentValues
 import android.content.Context
@@ -17,8 +17,8 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.widget.Toast
 import androidx.core.content.FileProvider
-import com.example.data.entity.ServiceNoteEntity
-import com.example.data.entity.StoreSettingsEntity
+import com.aistudio.sesmartcell.srvnot.data.entity.ServiceNoteEntity
+import com.aistudio.sesmartcell.srvnot.data.entity.StoreSettingsEntity
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
