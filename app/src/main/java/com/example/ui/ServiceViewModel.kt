@@ -1,13 +1,13 @@
-package com.example.ui
+package com.aistudio.sesmartcell.srvnot.ui
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.data.database.AppDatabase
-import com.example.data.entity.PaymentRecordEntity
-import com.example.data.entity.ServiceNoteEntity
-import com.example.data.entity.StoreSettingsEntity
-import com.example.data.repository.ServiceRepository
+import com.aistudio.sesmartcell.srvnot.data.database.AppDatabase
+import com.aistudio.sesmartcell.srvnot.data.entity.PaymentRecordEntity
+import com.aistudio.sesmartcell.srvnot.data.entity.ServiceNoteEntity
+import com.aistudio.sesmartcell.srvnot.data.entity.StoreSettingsEntity
+import com.aistudio.sesmartcell.srvnot.data.repository.ServiceRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -22,7 +22,7 @@ import java.util.Locale
 class ServiceViewModel(application: Application) : AndroidViewModel(application) {
 
     private val database = AppDatabase.getInstance(application)
-    val firestoreSync = com.example.data.firebase.FirestoreSyncManager(application)
+    val firestoreSync = com.aistudio.sesmartcell.srvnot.data.firebase.FirestoreSyncManager(application)
     val repository = ServiceRepository(
         serviceNoteDao = database.serviceNoteDao(),
         paymentRecordDao = database.paymentRecordDao(),
@@ -171,61 +171,4 @@ class ServiceViewModel(application: Application) : AndroidViewModel(application)
 
     fun addPaymentRecord(
         noteNumber: String,
-        amount: Long,
-        method: String,
-        refNumber: String,
-        type: String,
-        onSuccess: () -> Unit
-    ) {
-        viewModelScope.launch {
-            val payment = PaymentRecordEntity(
-                noteNumber = noteNumber,
-                amount = amount,
-                paymentMethod = method,
-                referenceNumber = refNumber,
-                paymentDate = System.currentTimeMillis(),
-                paymentType = type,
-                isVerified = true
-            )
-            val id = repository.addPayment(payment)
-            firestoreSync.syncPaymentToCloud(payment.copy(id = id))
-            onSuccess()
-        }
-    }
-
-    fun deleteNote(note: ServiceNoteEntity, onDeleted: () -> Unit) {
-        viewModelScope.launch {
-            repository.deleteNote(note)
-            firestoreSync.deleteNoteFromCloud(note.noteNumber)
-            onDeleted()
-        }
-    }
-
-    fun updateStoreSettings(settings: StoreSettingsEntity, onSaved: () -> Unit) {
-        viewModelScope.launch {
-            repository.updateSettings(settings)
-            firestoreSync.syncSettingsToCloud(settings)
-            onSaved()
-        }
-    }
-
-    suspend fun getNextNoteNumber(): String {
-        return repository.generateNextNoteNumber()
-    }
-
-    fun getCsvReport(): String {
-        return repository.generateCsvReport(allNotes.value, allPayments.value)
-    }
-}
-
-data class DashboardStats(
-    val notesToday: Int,
-    val inProgressCount: Int,
-    val completedCount: Int,
-    val waitingCount: Int,
-    val revenueToday: Long,
-    val revenueMonth: Long,
-    val totalRevenueAll: Long,
-    val totalPiutang: Long,
-    val totalNotes: Int
-)
+        amount: Long
