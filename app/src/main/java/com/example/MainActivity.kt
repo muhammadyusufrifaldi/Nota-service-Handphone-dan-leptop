@@ -39,10 +39,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aistudio.sesmartcell.srvnot.auth.AppUser
 import com.aistudio.sesmartcell.srvnot.auth.AuthManager
 import com.aistudio.sesmartcell.srvnot.ui.ServiceViewModel
 import com.aistudio.sesmartcell.srvnot.ui.screens.AuthScreen
@@ -56,7 +58,6 @@ import com.aistudio.sesmartcell.srvnot.ui.screens.SettingsScreen
 import com.aistudio.sesmartcell.srvnot.ui.theme.MyApplicationTheme
 import com.aistudio.sesmartcell.srvnot.ui.theme.PrimaryBlue
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 
 enum class AppScreen {
     DASHBOARD,
@@ -122,7 +123,7 @@ fun AppRoot(viewModel: ServiceViewModel) {
 @Composable
 fun MainAppContainer(
     viewModel: ServiceViewModel,
-    currentUser: com.example.auth.AppUser
+    currentUser: AppUser
 ) {
     var currentScreen by remember { mutableStateOf(AppScreen.DASHBOARD) }
     var selectedNoteId by remember { mutableLongStateOf(0L) }
