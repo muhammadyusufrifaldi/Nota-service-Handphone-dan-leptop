@@ -1,16 +1,16 @@
-package com.aistudio.sesmartcell.srvnot.data.database
+package com.example.data.database
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.aistudio.sesmartcell.srvnot.data.dao.PaymentRecordDao
-import com.aistudio.sesmartcell.srvnot.data.dao.ServiceNoteDao
-import com.aistudio.sesmartcell.srvnot.data.dao.StoreSettingsDao
-import com.aistudio.sesmartcell.srvnot.data.entity.PaymentRecordEntity
-import com.aistudio.sesmartcell.srvnot.data.entity.ServiceNoteEntity
-import com.aistudio.sesmartcell.srvnot.data.entity.StoreSettingsEntity
+import com.example.data.dao.PaymentRecordDao
+import com.example.data.dao.ServiceNoteDao
+import com.example.data.dao.StoreSettingsDao
+import com.example.data.entity.PaymentRecordEntity
+import com.example.data.entity.ServiceNoteEntity
+import com.example.data.entity.StoreSettingsEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
