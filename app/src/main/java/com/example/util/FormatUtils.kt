@@ -1,4 +1,4 @@
-package com.aistudio.sesmartcell.srvnot
+package com.aistudio.sesmartcell.srvnot.util
 
 import android.content.Context
 import android.content.Intent
