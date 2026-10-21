@@ -9,18 +9,13 @@ plugins {
 }
 
 android {
-    namespace = "com.aistudio.sesmartcell.srvnot"
-    compileSdk = 36
+    compileSdk 35 // atau 34
 
     defaultConfig {
-        applicationId = "com.aistudio.sesmartcell.srvnot"
-        minSdk = 24
-        targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        targetSdk 35 // atau 34
+        // ...
     }
+}
 
     signingConfigs {
         create("release") {
