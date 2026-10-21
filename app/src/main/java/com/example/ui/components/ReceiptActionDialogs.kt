@@ -1,4 +1,4 @@
-package com.aistudio.sesmartcell.srvnot.ui.components
+package com.example.ui.components
 
 import android.graphics.Bitmap
 import android.widget.Toast
@@ -54,14 +54,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.aistudio.sesmartcell.srvnot.data.entity.ServiceNoteEntity
-import com.aistudio.sesmartcell.srvnot.data.entity.StoreSettingsEntity
-import com.aistudio.sesmartcell.srvnot.ui.theme.PrimaryBlue
-import com.aistudio.sesmartcell.srvnot.ui.theme.StatusSuccess
-import com.aistudio.sesmartcell.srvnot.util.FormatUtils
-import com.aistudio.sesmartcell.srvnot.util.PrintReceiptHelper
-import com.aistudio.sesmartcell.srvnot.util.ReceiptBitmapHelper
-import com.aistudio.sesmartcell.srvnot.util.ReceiptType
+import com.example.data.entity.ServiceNoteEntity
+import com.example.data.entity.StoreSettingsEntity
+import com.example.ui.theme.PrimaryBlue
+import com.example.ui.theme.StatusSuccess
+import com.example.util.FormatUtils
+import com.example.util.PrintReceiptHelper
+import com.example.util.ReceiptBitmapHelper
+import com.example.util.ReceiptType
 
 @Composable
 fun PrintReceiptDialog(
