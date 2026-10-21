@@ -1,4 +1,4 @@
-package com.example.auth
+package com.aistudio.sesmartcell.srvnot.auth
 
 import android.app.Activity
 import android.content.Context
@@ -81,7 +81,6 @@ object AuthManager {
             )
         }
 
-        // Check local phone login session
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val isLoggedIn = prefs.getBoolean(KEY_LOGGED_IN, false)
         if (isLoggedIn) {
@@ -299,18 +298,15 @@ object AuthManager {
         scope: CoroutineScope,
         onComplete: () -> Unit
     ) {
-        // Clear Firebase Auth
         try {
             auth.signOut()
         } catch (e: Exception) {
             Log.e("Auth", "Error Firebase signOut", e)
         }
 
-        // Clear local session
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit().clear().apply()
 
-        // Clear Credential Manager
         val credentialManager = CredentialManager.create(context)
         scope.launch(Dispatchers.IO) {
             try {
