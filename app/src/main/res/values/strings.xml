@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">SE SMART CELL</string>
+    <!-- Default Web Client ID fallback to prevent Unresolved reference during CI/GitHub Actions build -->
+    <string name="default_web_client_id" translatable="false">924997350802-qic387da451pel5nhlded195d26p8r19.apps.googleusercontent.com</string>
+</resources>
