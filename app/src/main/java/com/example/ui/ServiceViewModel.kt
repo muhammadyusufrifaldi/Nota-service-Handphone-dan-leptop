@@ -1,13 +1,13 @@
-package com.aistudio.sesmartcell.srvnot.ui
+package com.example.ui
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.aistudio.sesmartcell.srvnot.data.database.AppDatabase
-import com.aistudio.sesmartcell.srvnot.data.entity.PaymentRecordEntity
-import com.aistudio.sesmartcell.srvnot.data.entity.ServiceNoteEntity
-import com.aistudio.sesmartcell.srvnot.data.entity.StoreSettingsEntity
-import com.aistudio.sesmartcell.srvnot.data.repository.ServiceRepository
+import com.example.data.database.AppDatabase
+import com.example.data.entity.PaymentRecordEntity
+import com.example.data.entity.ServiceNoteEntity
+import com.example.data.entity.StoreSettingsEntity
+import com.example.data.repository.ServiceRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
