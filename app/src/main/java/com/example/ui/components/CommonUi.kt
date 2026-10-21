@@ -1,4 +1,4 @@
-package com.example.ui.components
+package com.aistudio.sesmartcell.srvnot.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
