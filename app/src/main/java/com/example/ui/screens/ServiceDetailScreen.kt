@@ -71,6 +71,8 @@ import com.aistudio.sesmartcell.srvnot.ui.theme.StatusError
 import com.aistudio.sesmartcell.srvnot.ui.theme.StatusSuccess
 import com.aistudio.sesmartcell.srvnot.util.FormatUtils
 import com.aistudio.sesmartcell.srvnot.util.WhatsAppHelper
+import com.aistudio.sesmartcell.srvnot.util.PrintReceiptHelper
+import com.aistudio.sesmartcell.srvnot.util.ReceiptBitmapHelper
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
