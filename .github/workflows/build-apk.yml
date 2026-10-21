@@ -22,21 +22,22 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      # The action defaults to installing the obsolete "tools" package when packages is omitted.
-      # The package list must have no spaces after commas because the action splits on commas.
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
         with:
-          packages: 'platform-tools platforms;android-36 build-tools;36.0.0'
-          
+          packages: |
+            platform-tools
+            platforms;android-36
+            build-tools;36.0.0
+
       - name: Prepare local build configuration
         shell: bash
         env:
@@ -63,7 +64,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build debug APK
-        run: ./gradlew --no-daemon --stacktrace assembleDebug
+        run: ./gradlew --no-daemon --no-configuration-cache --stacktrace assembleDebug
 
       - name: Verify APK was created
         run: test -s app/build/outputs/apk/debug/app-debug.apk
