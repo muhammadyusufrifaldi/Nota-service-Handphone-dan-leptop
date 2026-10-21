@@ -1,4 +1,4 @@
-package com.aistudio.sesmartcell.srvnot.ui.screens
+package com.example.ui.screens
 
 import android.content.ClipData
 import android.content.ClipboardManager
