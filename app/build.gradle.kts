@@ -10,37 +10,29 @@ plugins {
 
 android {
     compileSdk = 35
-targetSdk = 35
-    }
-}
 
-    signingConfigs {
-    create("release") {
-        storeFile = file(System.getenv("KEYSTORE_PATH") ?: "my-upload-key.jks")
-        storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "android"
-        keyAlias = System.getenv("KEY_ALIAS") ?: "androiddebugkey"
-        keyPassword = System.getenv("KEY_PASSWORD") ?: "android"
+    defaultConfig {
+        applicationId = "com.sesmartcell.notaservice"
+        minSdk = 24
+        targetSdk = 35
+        versionCode = 1
+        versionName = "1.0"
     }
-}
-        create("debugConfig") {
-            storeFile = file("${rootDir}/debug.keystore")
-            storePassword = "android"
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
-        }
-    }
+
+    // Hapus atau komentari bagian signingConfigs sementara waktu agar tidak error
+    // signingConfigs {
+    //     create("release") {
+    //         ...
+    //     }
+    // }
 
     buildTypes {
-        release {
-            isCrunchPngs = false
+        getByName("release") {
             isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = signingConfigs.getByName("release")
-        }
-        debug {
-            signingConfig = signingConfigs.getByName("debugConfig")
+            // signingConfig = signingConfigs.getByName("release") // Komentari juga baris ini jika ada
         }
     }
+}
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
