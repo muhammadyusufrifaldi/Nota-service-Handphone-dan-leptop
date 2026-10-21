@@ -1,11 +1,11 @@
-package com.aistudio.sesmartcell.srvnot.util
+package com.example.util
 
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
-import com.aistudio.sesmartcell.srvnot.data.entity.ServiceNoteEntity
-import com.aistudio.sesmartcell.srvnot.data.entity.StoreSettingsEntity
+import com.example.data.entity.ServiceNoteEntity
+import com.example.data.entity.StoreSettingsEntity
 import java.net.URLEncoder
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
