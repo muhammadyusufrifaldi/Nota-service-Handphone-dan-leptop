@@ -1,4 +1,4 @@
-package com.aistudio.sesmartcell.srvnot.ui.components
+package com.example.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,10 +20,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 // Pastikan import warna tema menggunakan namespace yang benar:
-import com.aistudio.sesmartcell.srvnot.ui.theme.StatusError
-import com.aistudio.sesmartcell.srvnot.ui.theme.StatusPurple
-import com.aistudio.sesmartcell.srvnot.ui.theme.StatusSuccess
-import com.aistudio.sesmartcell.srvnot.ui.theme.StatusWarning
+import com.example.ui.theme.StatusError
+import com.example.ui.theme.StatusPurple
+import com.example.ui.theme.StatusSuccess
+import com.example.ui.theme.StatusWarning
 
 @Composable
 fun StatusBadge(
