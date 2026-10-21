@@ -30,10 +30,11 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      # The setup-android action tried to install the obsolete "tools" SDK package,
-      # which no longer exists in Google's current SDK repository.
-      - name: Install Android SDK packages
-        run: sdkmanager --install "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+      # Explicitly list current SDK packages; do not request the obsolete "tools" package.
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools, platforms;android-36, build-tools;36.0.0'
 
       - name: Prepare local build configuration
         shell: bash
@@ -52,7 +53,6 @@ jobs:
           fi
           # Without a Firebase config the APK can compile, but Firebase sign-in/cloud sync
           # will not work until app/google-services.json is added for this app/package.
-          # Debug signing key is generated only in the runner and is not committed.
           if [[ ! -f debug.keystore ]]; then
             keytool -genkeypair -v \
               -keystore debug.keystore \
