@@ -1,4 +1,4 @@
-package com.example.ui.components
+package com.aistudio.sesmartcell.srvnot.ui.components
 
 import android.graphics.Bitmap
 import android.widget.Toast
@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -21,7 +20,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Payment
 import androidx.compose.material.icons.filled.Print
@@ -37,7 +35,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -57,14 +54,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.data.entity.ServiceNoteEntity
-import com.example.data.entity.StoreSettingsEntity
-import com.example.ui.theme.PrimaryBlue
-import com.example.ui.theme.StatusSuccess
-import com.example.util.FormatUtils
-import com.example.util.PrintReceiptHelper
-import com.example.util.ReceiptBitmapHelper
-import com.example.util.ReceiptType
+import com.aistudio.sesmartcell.srvnot.data.entity.ServiceNoteEntity
+import com.aistudio.sesmartcell.srvnot.data.entity.StoreSettingsEntity
+import com.aistudio.sesmartcell.srvnot.ui.theme.PrimaryBlue
+import com.aistudio.sesmartcell.srvnot.ui.theme.StatusSuccess
+import com.aistudio.sesmartcell.srvnot.util.FormatUtils
+import com.aistudio.sesmartcell.srvnot.util.PrintReceiptHelper
+import com.aistudio.sesmartcell.srvnot.util.ReceiptBitmapHelper
+import com.aistudio.sesmartcell.srvnot.util.ReceiptType
 
 @Composable
 fun PrintReceiptDialog(
@@ -74,7 +71,7 @@ fun PrintReceiptDialog(
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
-    var selectedFormat by remember { mutableStateOf("80mm") } // "80mm", "58mm", "pdf"
+    var selectedFormat by remember { mutableStateOf("80mm") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -117,7 +114,6 @@ fun PrintReceiptDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Receipt live text preview card
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -232,7 +228,6 @@ fun ImageReceiptDialog(
         )
     }
 
-    // Generate bitmap for preview
     val receiptBitmap: Bitmap = remember(selectedType) {
         ReceiptBitmapHelper.generateReceiptBitmap(context, note, store, totalPaid, selectedType)
     }
@@ -257,18 +252,17 @@ fun ImageReceiptDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    ReceiptType.values().forEach { type ->
+                    ReceiptType.entries.forEach { type ->
                         FilterChip(
                             selected = selectedType == type,
                             onClick = { selectedType = type },
-                            label = { Text(type.name.lowercase().capitalize(), fontSize = 11.sp) }
+                            label = { Text(type.name.lowercase().replaceFirstChar { it.uppercase() }, fontSize = 11.sp) }
                         )
                     }
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // Bitmap preview card
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -323,7 +317,7 @@ fun ImageReceiptDialog(
                                 type = selectedType
                             )
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF25D366)), // WhatsApp green
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF25D366)),
                         modifier = Modifier
                             .weight(1f)
                             .testTag("share_whatsapp_image_button")
