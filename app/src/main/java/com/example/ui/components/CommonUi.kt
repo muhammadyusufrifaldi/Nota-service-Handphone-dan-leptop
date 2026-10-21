@@ -18,16 +18,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.StatusError
-import com.example.ui.theme.StatusPurple
-import com.example.ui.theme.StatusSuccess
-import com.example.ui.theme.StatusWarning
+
+// Pastikan import warna tema menggunakan namespace yang benar:
+import com.aistudio.sesmartcell.srvnot.ui.theme.StatusError
+import com.aistudio.sesmartcell.srvnot.ui.theme.StatusPurple
+import com.aistudio.sesmartcell.srvnot.ui.theme.StatusSuccess
+import com.aistudio.sesmartcell.srvnot.ui.theme.StatusWarning
 
 @Composable
 fun StatusBadge(
     status: String,
     modifier: Modifier = Modifier
 ) {
+// ... (sisa kode ke bawah tetap sama)
     val (bgColor, textColor) = when (status) {
         "Menunggu" -> Color(0xFFFEF3C7) to Color(0xFFB45309) // Amber
         "Sedang Dikerjakan" -> Color(0xFFDBEAFE) to Color(0xFF1E40AF) // Blue
