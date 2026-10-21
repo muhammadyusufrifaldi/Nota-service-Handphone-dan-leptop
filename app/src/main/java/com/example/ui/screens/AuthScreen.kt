@@ -1,4 +1,4 @@
-package com.example.ui.screens
+package com.aistudio.sesmartcell.srvnot.ui.screens
 
 import android.app.Activity
 import android.widget.Toast
@@ -6,8 +6,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -71,10 +69,10 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.R
-import com.example.auth.AuthManager
-import com.example.ui.theme.PrimaryBlue
-import com.example.ui.theme.PrimaryBlueLight
+import com.aistudio.sesmartcell.srvnot.R
+import com.aistudio.sesmartcell.srvnot.auth.AuthManager
+import com.aistudio.sesmartcell.srvnot.ui.theme.PrimaryBlue
+import com.aistudio.sesmartcell.srvnot.ui.theme.PrimaryBlueLight
 
 @Composable
 fun AuthScreen(
@@ -85,12 +83,10 @@ fun AuthScreen(
     var selectedTab by remember { mutableIntStateOf(0) }
     var isLoading by remember { mutableStateOf(false) }
 
-    // Phone Login form states
     var phoneNumber by remember { mutableStateOf("") }
     var ownerName by remember { mutableStateOf("") }
     var pinCode by remember { mutableStateOf("") }
 
-    // Firebase Phone OTP Dialog states
     var showOtpDialog by remember { mutableStateOf(false) }
     var verificationIdState by remember { mutableStateOf("") }
     var enteredOtpCode by remember { mutableStateOf("") }
@@ -118,7 +114,6 @@ fun AuthScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // App Logo
             Box(
                 modifier = Modifier
                     .size(84.dp)
@@ -153,7 +148,6 @@ fun AuthScreen(
 
             Spacer(modifier = Modifier.height(22.dp))
 
-            // Tab Selection: Phone Number, Google, Quick Mode
             TabRow(
                 selectedTabIndex = selectedTab,
                 containerColor = Color(0xFF1E293B),
@@ -209,7 +203,6 @@ fun AuthScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // TAB 0: PHONE LOGIN
             AnimatedVisibility(visible = selectedTab == 0) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -235,7 +228,6 @@ fun AuthScreen(
                             modifier = Modifier.padding(top = 4.dp, bottom = 14.dp)
                         )
 
-                        // Phone Number Input
                         OutlinedTextField(
                             value = phoneNumber,
                             onValueChange = { phoneNumber = it },
@@ -259,7 +251,6 @@ fun AuthScreen(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        // Owner Name Input
                         OutlinedTextField(
                             value = ownerName,
                             onValueChange = { ownerName = it },
@@ -282,7 +273,6 @@ fun AuthScreen(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        // PIN Input
                         OutlinedTextField(
                             value = pinCode,
                             onValueChange = { if (it.length <= 6) pinCode = it },
@@ -307,7 +297,6 @@ fun AuthScreen(
 
                         Spacer(modifier = Modifier.height(18.dp))
 
-                        // Main Phone Login Button (Instant & Reliable)
                         Button(
                             onClick = {
                                 if (phoneNumber.trim().length < 8) {
@@ -338,7 +327,6 @@ fun AuthScreen(
 
                         Spacer(modifier = Modifier.height(10.dp))
 
-                        // Option to send SMS OTP via Firebase
                         OutlinedButton(
                             onClick = {
                                 val activity = context as? Activity
@@ -396,7 +384,6 @@ fun AuthScreen(
                 }
             }
 
-            // TAB 1: GOOGLE SIGN-IN
             AnimatedVisibility(visible = selectedTab == 1) {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Card(
@@ -489,7 +476,6 @@ fun AuthScreen(
                 }
             }
 
-            // TAB 2: QUICK / OFFLINE MODE
             AnimatedVisibility(visible = selectedTab == 2) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -549,7 +535,6 @@ fun AuthScreen(
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        // OTP Dialog for Firebase Phone Auth
         if (showOtpDialog) {
             AlertDialog(
                 onDismissRequest = { showOtpDialog = false },
@@ -582,7 +567,7 @@ fun AuthScreen(
                             AuthManager.verifyPhoneOtpAndSignIn(
                                 verificationId = verificationIdState,
                                 smsCode = enteredOtpCode,
-                                onSuccess = { user ->
+                                onSuccess = {
                                     showOtpDialog = false
                                     Toast.makeText(context, "Login nomor HP berhasil!", Toast.LENGTH_SHORT).show()
                                     onAuthSuccess()
