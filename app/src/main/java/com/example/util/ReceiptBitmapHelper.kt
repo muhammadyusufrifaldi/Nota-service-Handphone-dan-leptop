@@ -49,7 +49,7 @@ object ReceiptBitmapHelper {
             isAntiAlias = true
         }
 
-        // Top Header Banner (Deep Blue #0F172A to #1E3A8A)
+        // Top Header Banner (Deep Blue #0F172A to #1E3A8A)[cite: 15]
         paint.color = Color.parseColor("#0F172A")
         canvas.drawRect(0f, 0f, width.toFloat(), 260f, paint)
 
@@ -57,26 +57,26 @@ object ReceiptBitmapHelper {
         paint.color = Color.parseColor("#2563EB")
         canvas.drawRect(0f, 252f, width.toFloat(), 260f, paint)
 
-        // Header Title
+        // Header Title[cite: 15]
         paint.color = Color.WHITE
         paint.textSize = 52f
         paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         paint.textAlign = Paint.Align.CENTER
         canvas.drawText(store.storeName, width / 2f, 90f, paint)
 
-        // Header Subtitle
+        // Header Subtitle[cite: 15]
         paint.textSize = 28f
         paint.typeface = Typeface.DEFAULT
         paint.color = Color.parseColor("#93C5FD")
         canvas.drawText(store.storeTagline, width / 2f, 135f, paint)
 
-        // Header Address & Phone
+        // Header Address & Phone[cite: 15]
         paint.textSize = 24f
         paint.color = Color.parseColor("#CBD5E1")
         canvas.drawText(store.storeAddress, width / 2f, 175f, paint)
         canvas.drawText("WhatsApp: ${store.storePhone}", width / 2f, 215f, paint)
 
-        // Receipt Type Tag
+        // Receipt Type Tag[cite: 15]
         val typeBadgeRect = RectF(60f, 290f, width - 60f, 360f)
         paint.color = when (type) {
             ReceiptType.PELUNASAN -> Color.parseColor("#065F46")
@@ -96,7 +96,7 @@ object ReceiptBitmapHelper {
         val margin = 60f
         val rightEdge = width - 60f
 
-        // Box 1: Info Transaksi & Pelanggan
+        // Box 1: Info Transaksi & Pelanggan[cite: 15]
         paint.color = Color.parseColor("#F1F5F9")
         canvas.drawRoundRect(RectF(margin, yPos, rightEdge, yPos + 180f), 16f, 16f, paint)
 
@@ -118,7 +118,7 @@ object ReceiptBitmapHelper {
 
         yPos += 210f
 
-        // Box 2: Perangkat & Kerusakan
+        // Box 2: Perangkat & Kerusakan[cite: 15]
         paint.color = Color.parseColor("#F8FAFC")
         paint.style = Paint.Style.FILL
         canvas.drawRoundRect(RectF(margin, yPos, rightEdge, yPos + 270f), 16f, 16f, paint)
@@ -152,7 +152,7 @@ object ReceiptBitmapHelper {
 
         yPos += 300f
 
-        // Box 3: Rincian Biaya
+        // Box 3: Rincian Biaya[cite: 15]
         paint.color = Color.parseColor("#0F172A")
         paint.textSize = 28f
         paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
@@ -193,7 +193,7 @@ object ReceiptBitmapHelper {
 
         yPos += 30f
 
-        // Status & Garansi Card
+        // Status & Garansi Card[cite: 15]
         val statusRect = RectF(margin, yPos, rightEdge, yPos + 110f)
         paint.color = Color.parseColor("#EFF6FF")
         canvas.drawRoundRect(statusRect, 16f, 16f, paint)
@@ -209,7 +209,7 @@ object ReceiptBitmapHelper {
 
         yPos += 140f
 
-        // Terms info
+        // Terms info[cite: 15]
         paint.color = Color.parseColor("#64748B")
         paint.textSize = 19f
         paint.typeface = Typeface.DEFAULT
@@ -218,7 +218,7 @@ object ReceiptBitmapHelper {
 
         yPos += 80f
 
-        // Signature columns
+        // Signature columns[cite: 15]
         paint.color = Color.parseColor("#334155")
         paint.textSize = 24f
         paint.typeface = Typeface.DEFAULT
