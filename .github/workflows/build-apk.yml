@@ -28,7 +28,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: '17'
 
       # The action defaults to installing the obsolete "tools" package when packages is omitted.
       # The package list must have no spaces after commas because the action splits on commas.
