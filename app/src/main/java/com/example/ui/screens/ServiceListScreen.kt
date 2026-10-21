@@ -1,7 +1,6 @@
-package com.example.ui.screens
+package com.aistudio.sesmartcell.srvnot.ui.screens
 
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,7 +17,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -26,7 +24,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Print
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Send
@@ -56,7 +53,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -64,16 +60,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.data.entity.ServiceNoteEntity
-import com.example.ui.ServiceViewModel
-import com.example.ui.components.DeviceTypeBadge
-import com.example.ui.components.PaymentStatusBadge
-import com.example.ui.components.PrintReceiptDialog
-import com.example.ui.components.StatusBadge
-import com.example.ui.theme.PrimaryBlue
-import com.example.ui.theme.StatusError
-import com.example.util.FormatUtils
-import com.example.util.WhatsAppHelper
+import com.aistudio.sesmartcell.srvnot.data.entity.ServiceNoteEntity
+import com.aistudio.sesmartcell.srvnot.ui.ServiceViewModel
+import com.aistudio.sesmartcell.srvnot.ui.components.DeviceTypeBadge
+import com.aistudio.sesmartcell.srvnot.ui.components.PaymentStatusBadge
+import com.aistudio.sesmartcell.srvnot.ui.components.PrintReceiptDialog
+import com.aistudio.sesmartcell.srvnot.ui.components.StatusBadge
+import com.aistudio.sesmartcell.srvnot.ui.theme.PrimaryBlue
+import com.aistudio.sesmartcell.srvnot.ui.theme.StatusError
+import com.aistudio.sesmartcell.srvnot.util.FormatUtils
+import com.aistudio.sesmartcell.srvnot.util.WhatsAppHelper
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -130,7 +126,6 @@ fun ServiceListScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Search Input
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { viewModel.searchQuery.value = it },
@@ -155,7 +150,6 @@ fun ServiceListScreen(
                     .testTag("list_search_input")
             )
 
-            // Status Filter Chips
             val statusFilters = listOf("Semua", "Menunggu", "Sedang Dikerjakan", "Menunggu Sparepart", "Selesai", "Diambil Pelanggan")
             LazyRow(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
@@ -174,7 +168,6 @@ fun ServiceListScreen(
                 }
             }
 
-            // Device Filter Chips
             val deviceFilters = listOf("Semua", "HP", "Laptop")
             LazyRow(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
@@ -191,7 +184,6 @@ fun ServiceListScreen(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Notes List
             if (filteredNotes.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -236,7 +228,6 @@ fun ServiceListScreen(
         }
     }
 
-    // Print Dialog
     if (noteToPrint != null) {
         val totalPaid = paymentMap[noteToPrint!!.noteNumber]?.sumOf { it.amount } ?: 0L
         PrintReceiptDialog(
@@ -247,7 +238,6 @@ fun ServiceListScreen(
         )
     }
 
-    // Delete Confirmation Dialog
     if (noteToDelete != null) {
         AlertDialog(
             onDismissRequest = { noteToDelete = null },
