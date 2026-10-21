@@ -1,13 +1,13 @@
 package com.aistudio.sesmartcell.srvnot.ui.screens
 
-import androidx.compose.foundation.Image
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,559 +16,263 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.MonetizationOn
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Send
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.aistudio.sesmartcell.srvnot.R
-import com.aistudio.sesmartcell.srvnot.data.entity.ServiceNoteEntity
-import com.aistudio.sesmartcell.srvnot.ui.ServiceViewModel
-import com.aistudio.sesmartcell.srvnot.ui.components.DeviceTypeBadge
-import com.aistudio.sesmartcell.srvnot.ui.components.PaymentStatusBadge
-import com.aistudio.sesmartcell.srvnot.ui.components.StatusBadge
-import com.aistudio.sesmartcell.srvnot.ui.theme.PrimaryBlue
-import com.aistudio.sesmartcell.srvnot.ui.theme.PrimaryBlueLight
-import com.aistudio.sesmartcell.srvnot.util.FormatUtils
-import com.aistudio.sesmartcell.srvnot.util.WhatsAppHelper
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DashboardScreen(
-    viewModel: ServiceViewModel,
-    onNavigateToCreate: () -> Unit,
-    onNavigateToDetail: (Long) -> Unit,
-    onNavigateToAllNotes: () -> Unit,
-    modifier: Modifier = Modifier
+fun DocumentationScreen(
+    onNavigateBack: () -> Unit
 ) {
     val context = LocalContext.current
-    val notes by viewModel.allNotes.collectAsStateWithLifecycle()
-    val payments by viewModel.allPayments.collectAsStateWithLifecycle()
-    val storeSettings by viewModel.storeSettings.collectAsStateWithLifecycle()
-    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
-    val selectedFilter by viewModel.selectedStatusFilter.collectAsStateWithLifecycle()
 
-    val stats = remember(notes, payments) {
-        viewModel.getDashboardStats(notes, payments)
+    val sqlSchema = """
+-- ========================================================
+-- DATABASE SCHEMA: SE SMART CELL - NOTA SERVICE HP & LAPTOP
+-- Engine: MySQL 8.0+ / MariaDB 10.4+
+-- ========================================================
+
+CREATE DATABASE IF NOT EXISTS `se_smart_cell` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `se_smart_cell`;
+
+-- 1. Tabel Pengguna / Admin
+CREATE TABLE IF NOT EXISTS `users` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `username` VARCHAR(50) NOT NULL UNIQUE,
+  `password` VARCHAR(255) NOT NULL,
+  `nama_lengkap` VARCHAR(100) NOT NULL,
+  `role` ENUM('admin', 'teknisi') DEFAULT 'admin',
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- 2. Tabel Nota Service
+CREATE TABLE IF NOT EXISTS `service_notes` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `nomor_nota` VARCHAR(30) NOT NULL UNIQUE,
+  `tanggal_masuk` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `nama_pelanggan` VARCHAR(100) NOT NULL,
+  `no_whatsapp` VARCHAR(20) NOT NULL,
+  `jenis_perangkat` ENUM('HP', 'Laptop', 'Lainnya') NOT NULL,
+  `merek` VARCHAR(50) NOT NULL,
+  `model` VARCHAR(100) NOT NULL,
+  `imei_sn` VARCHAR(50) NULL,
+  `kelengkapan` VARCHAR(255) NULL,
+  `keluhan` TEXT NOT NULL,
+  `hasil_pengecekan` TEXT NULL,
+  `tindakan_perbaikan` TEXT NULL,
+  `biaya_jasa` DECIMAL(12,2) DEFAULT 0.00,
+  `biaya_sparepart` DECIMAL(12,2) DEFAULT 0.00,
+  `diskon` DECIMAL(12,2) DEFAULT 0.00,
+  `total_biaya` DECIMAL(12,2) GENERATED ALWAYS AS (biaya_jasa + biaya_sparepart - diskon) STORED,
+  `uang_muka` DECIMAL(12,2) DEFAULT 0.00,
+  `estimasi_selesai` VARCHAR(50) NULL,
+  `nama_teknisi` VARCHAR(100) DEFAULT 'Teknisi SE SMART',
+  `status_service` ENUM('Menunggu', 'Sedang Dikerjakan', 'Menunggu Sparepart', 'Selesai', 'Diambil Pelanggan', 'Dibatalkan') DEFAULT 'Menunggu',
+  `garansi` VARCHAR(50) DEFAULT '30 Hari',
+  `garansi_berakhir` DATE NULL,
+  `metode_pembayaran_awal` VARCHAR(50) DEFAULT 'Tunai',
+  `catatan` TEXT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX `idx_pelanggan` (`nama_pelanggan`),
+  INDEX `idx_status` (`status_service`),
+  INDEX `idx_whatsapp` (`no_whatsapp`)
+) ENGINE=InnoDB;
+
+-- 3. Tabel Riwayat Pembayaran (Mendukung Pembayaran Bertahap)
+CREATE TABLE IF NOT EXISTS `payment_records` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `nomor_nota` VARCHAR(30) NOT NULL,
+  `jumlah` DECIMAL(12,2) NOT NULL,
+  `metode` ENUM('Tunai', 'QRIS', 'Transfer Bank', 'E-Wallet') NOT NULL,
+  `no_referensi` VARCHAR(100) NULL,
+  `tanggal_bayar` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `jenis_bayar` ENUM('DP', 'Cicilan', 'Pelunasan') DEFAULT 'DP',
+  `is_verified` TINYINT(1) DEFAULT 1,
+  `keterangan` VARCHAR(255) NULL,
+  FOREIGN KEY (`nomor_nota`) REFERENCES `service_notes`(`nomor_nota`) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- 4. Tabel Pengaturan Toko & Rekening
+CREATE TABLE IF NOT EXISTS `store_settings` (
+  `id` INT PRIMARY KEY DEFAULT 1,
+  `nama_toko` VARCHAR(100) DEFAULT 'SE SMART CELL',
+  `slogan` VARCHAR(255) DEFAULT 'Service Smartphone & Laptop Profesional',
+  `alamat` TEXT,
+  `no_whatsapp` VARCHAR(20) DEFAULT '081234567890',
+  `qris_merchant` VARCHAR(100) DEFAULT 'SE SMART CELL INDONESIA',
+  `qris_nmid` VARCHAR(50) DEFAULT 'ID102030405060',
+  `rekening_bank` TEXT,
+  `ewallet` TEXT,
+  `syarat_garansi` TEXT
+) ENGINE=InnoDB;
+    """.trimIndent()
+
+    val apiDocs = """
+REST API ENDPOINTS REFERENSI:
+------------------------------------------
+1. GET /api/notes.php
+   Params: ?search=...&status=...&device=...
+   Returns: List[ServiceNote]
+
+2. POST /api/notes.php (Create Note)
+   Body: JSON { customerName, phone, deviceType, brand, model, issue, serviceFee, sparepartFee, downPayment, method }
+   Returns: { status: "success", noteNumber: "SC-20261020-001" }
+
+3. PUT /api/notes.php?action=status
+   Body: JSON { noteNumber, status }
+   Returns: { status: "updated" }
+
+4. POST /api/payments.php
+   Body: JSON { noteNumber, amount, method, refNumber, type }
+   Returns: { status: "payment_recorded", balanceRemaining }
+
+5. GET /api/reports.php
+   Params: ?period=month
+   Returns: { totalRevenue, totalJasa, totalSparepart, totalPiutang, completedCount }
+    """.trimIndent()
+
+    fun copyToClipboard(label: String, text: String) {
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = ClipData.newPlainText(label, text)
+        clipboard.setPrimaryClip(clip)
+        Toast.makeText(context, "$label berhasil disalin ke clipboard!", Toast.LENGTH_SHORT).show()
     }
 
-    val paymentMap = remember(payments) {
-        payments.filter { it.isVerified }.groupBy { it.noteNumber }
-    }
-
-    val displayNotes = remember(notes, searchQuery, selectedFilter) {
-        notes.filter { note ->
-            val matchQuery = searchQuery.isBlank() ||
-                note.noteNumber.contains(searchQuery, ignoreCase = true) ||
-                note.customerName.contains(searchQuery, ignoreCase = true) ||
-                note.brand.contains(searchQuery, ignoreCase = true) ||
-                note.model.contains(searchQuery, ignoreCase = true) ||
-                note.customerPhone.contains(searchQuery, ignoreCase = true)
-
-            val matchFilter = selectedFilter == "Semua" || note.serviceStatus == selectedFilter
-            matchQuery && matchFilter
-        }
-    }
-
-    Box(modifier = modifier.fillMaxSize()) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 96.dp)
-        ) {
-            item {
-                StoreHeroHeader(
-                    storeName = storeSettings.storeName,
-                    tagline = storeSettings.storeTagline,
-                    onCreateClick = onNavigateToCreate
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Dokumentasi & Skema Database", fontWeight = FontWeight.Bold, fontSize = 18.sp) },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
-            }
-
-            item {
-                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-                    Text(
-                        text = "Ringkasan Servis Hari Ini",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        MetricCard(
-                            title = "Nota Hari Ini",
-                            value = "${stats.notesToday}",
-                            subtitle = "Total: ${stats.totalNotes} unit",
-                            icon = Icons.Default.Description,
-                            gradientColors = listOf(Color(0xFF1E3A8A), Color(0xFF2563EB)),
-                            modifier = Modifier.weight(1f)
-                        )
-                        MetricCard(
-                            title = "Sedang Dikerjakan",
-                            value = "${stats.inProgressCount}",
-                            subtitle = "Antrean: ${stats.waitingCount}",
-                            icon = Icons.Default.Build,
-                            gradientColors = listOf(Color(0xFFD97706), Color(0xFFF59E0B)),
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        MetricCard(
-                            title = "Sudah Selesai",
-                            value = "${stats.completedCount}",
-                            subtitle = "Siap diambil",
-                            icon = Icons.Default.CheckCircle,
-                            gradientColors = listOf(Color(0xFF065F46), Color(0xFF10B981)),
-                            modifier = Modifier.weight(1f)
-                        )
-                        MetricCard(
-                            title = "Pendapatan Hari Ini",
-                            value = FormatUtils.formatRupiah(stats.revenueToday),
-                            subtitle = "Bulan Ini: ${FormatUtils.formatRupiah(stats.revenueMonth)}",
-                            icon = Icons.Default.MonetizationOn,
-                            gradientColors = listOf(Color(0xFF4338CA), Color(0xFF6366F1)),
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-            }
-
-            item {
-                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
-                    OutlinedTextField(
-                        value = searchQuery,
-                        onValueChange = { viewModel.searchQuery.value = it },
-                        placeholder = { Text("Cari nota, pelanggan, tipe, IMEI...", fontSize = 13.sp) },
-                        leadingIcon = {
-                            Icon(Icons.Default.Search, contentDescription = null, tint = PrimaryBlue)
-                        },
-                        trailingIcon = {
-                            if (searchQuery.isNotEmpty()) {
-                                IconButton(onClick = { viewModel.searchQuery.value = "" }) {
-                                    Icon(Icons.Default.Close, contentDescription = "Clear")
-                                }
-                            }
-                        },
-                        singleLine = true,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = PrimaryBlue,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag("dashboard_search_input")
-                    )
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    val statusFilters = listOf("Semua", "Menunggu", "Sedang Dikerjakan", "Menunggu Sparepart", "Selesai", "Diambil Pelanggan")
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        contentPadding = PaddingValues(end = 8.dp)
-                    ) {
-                        items(statusFilters) { status ->
-                            FilterChip(
-                                selected = selectedFilter == status,
-                                onClick = { viewModel.selectedStatusFilter.value = status },
-                                label = { Text(status, fontSize = 12.sp) },
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = PrimaryBlue,
-                                    selectedLabelColor = Color.White
-                                )
-                            )
-                        }
-                    }
-                }
-            }
-
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Daftar Service Terkini (${displayNotes.size})",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    TextButton(onClick = onNavigateToAllNotes) {
-                        Text("Lihat Semua", color = PrimaryBlue, fontWeight = FontWeight.SemiBold)
-                    }
-                }
-            }
-
-            if (displayNotes.isEmpty()) {
-                item {
-                    EmptyNotesPlaceholder(searchQuery = searchQuery)
-                }
-            } else {
-                items(displayNotes, key = { it.id }) { note ->
-                    val totalPaid = paymentMap[note.noteNumber]?.sumOf { it.amount } ?: 0L
-                    val sisa = maxOf(0L, note.totalCost - totalPaid)
-
-                    DashboardNoteCard(
-                        note = note,
-                        totalPaid = totalPaid,
-                        sisa = sisa,
-                        onClick = { onNavigateToDetail(note.id) },
-                        onSendWhatsApp = {
-                            val msg = WhatsAppHelper.createStatusMessage(note, storeSettings, totalPaid, sisa)
-                            WhatsAppHelper.openWhatsApp(context, note.customerPhone, msg)
-                        }
-                    )
-                }
-            }
-        }
-
-        FloatingActionButton(
-            onClick = onNavigateToCreate,
-            containerColor = PrimaryBlue,
-            contentColor = Color.White,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(24.dp)
-                .testTag("fab_create_note")
-        ) {
-            Row(modifier = Modifier.padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Add, contentDescription = "Buat Nota")
-                Spacer(modifier = Modifier.width(6.dp))
-                Text("Buat Nota", fontWeight = FontWeight.Bold)
-            }
-        }
-    }
-}
-
-@Composable
-fun StoreHeroHeader(
-    storeName: String,
-    tagline: String,
-    onCreateClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        shape = RoundedCornerShape(18.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(
-                            Color(0xFF0B132B),
-                            Color(0xFF1E293B),
-                            Color(0xFF1D4ED8)
-                        )
-                    )
-                )
-                .padding(18.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = storeName,
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color.White,
-                        letterSpacing = 0.5.sp
-                    )
-                    Text(
-                        text = tagline,
-                        fontSize = 12.sp,
-                        color = Color(0xFF93C5FD),
-                        fontWeight = FontWeight.Normal
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Button(
-                        onClick = onCreateClick,
-                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlueLight),
-                        shape = RoundedCornerShape(10.dp),
-                        modifier = Modifier.testTag("hero_create_note_button")
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("Nota Service Baru", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Box(
-                    modifier = Modifier
-                        .size(68.dp)
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(Color(0xFF0F172A))
-                        .border(1.5.dp, PrimaryBlueLight, RoundedCornerShape(14.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.se_smart_cell_logo),
-                        contentDescription = "Logo Toko",
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun MetricCard(
-    title: String,
-    value: String,
-    subtitle: String,
-    icon: ImageVector,
-    gradientColors: List<Color>,
-    modifier: Modifier = Modifier
-) {
-    ElevatedCard(
-        modifier = modifier,
-        shape = RoundedCornerShape(14.dp),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Brush.linearGradient(gradientColors))
-                .padding(14.dp)
-        ) {
-            Column {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = title,
-                        fontSize = 11.sp,
-                        color = Color.White.copy(alpha = 0.85f),
-                        fontWeight = FontWeight.Medium
-                    )
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = Color.White.copy(alpha = 0.7f),
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = value,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = Color.White,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = subtitle,
-                    fontSize = 10.sp,
-                    color = Color.White.copy(alpha = 0.85f)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun DashboardNoteCard(
-    note: ServiceNoteEntity,
-    totalPaid: Long,
-    sisa: Long,
-    onClick: () -> Unit,
-    onSendWhatsApp: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 6.dp)
-            .clickable(onClick = onClick)
-            .testTag("note_card_${note.noteNumber}"),
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.5.dp)
-    ) {
-        Column(modifier = Modifier.padding(14.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = note.noteNumber,
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 14.sp,
-                        color = PrimaryBlue
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    DeviceTypeBadge(deviceType = note.deviceType)
-                }
-                StatusBadge(status = note.serviceStatus)
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "${note.customerName} • ${note.customerPhone}",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = "${note.brand} ${note.model}",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = "Keluhan: ${note.issueDescription}",
-                fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
             )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = FormatUtils.formatRupiah(note.totalCost),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        PaymentStatusBadge(totalCost = note.totalCost, totalPaid = totalPaid)
-                    }
-                    if (sisa > 0) {
-                        Text(
-                            text = "Sisa: ${FormatUtils.formatRupiah(sisa)}",
-                            fontSize = 11.sp,
-                            color = Color(0xFFDC2626),
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(
-                        onClick = onSendWhatsApp,
-                        modifier = Modifier
-                            .size(36.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFF25D366))
-                    ) {
-                        Icon(
-                            Icons.Default.Send,
-                            contentDescription = "WhatsApp",
-                            tint = Color.White,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                }
-            }
         }
-    }
-}
-
-@Composable
-fun EmptyNotesPlaceholder(searchQuery: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(40.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(
-                Icons.Default.Description,
-                contentDescription = null,
-                modifier = Modifier.size(54.dp),
-                tint = MaterialTheme.colorScheme.outline
-            )
-            Spacer(modifier = Modifier.height(10.dp))
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
             Text(
-                text = if (searchQuery.isNotBlank()) "Tidak ditemukan nota yang sesuai pencarian" else "Belum ada data service yang tercatat",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
+                text = "Panduan Arsitektur & Database SE SMART CELL",
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp
+            )
+            Text(
+                text = "Aplikasi ini dirancang modular menggunakan SQLite/Room di Android serta kompatibel penuh dengan skema MySQL dan REST API untuk kebutuhan integrasi backend PHP.",
+                fontSize = 13.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Skema MySQL (database.sql)", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        OutlinedButton(
+                            onClick = { copyToClipboard("database.sql", sqlSchema) },
+                            modifier = Modifier.testTag("copy_sql_button")
+                        ) {
+                            Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(14.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Salin SQL", fontSize = 11.sp)
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color(0xFF0F172A), RoundedCornerShape(8.dp))
+                            .padding(12.dp)
+                    ) {
+                        Text(
+                            text = sqlSchema,
+                            color = Color(0xFF38BDF8),
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 10.sp,
+                            lineHeight = 14.sp
+                        )
+                    }
+                }
+            }
+
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Dokumentasi REST API", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        OutlinedButton(onClick = { copyToClipboard("REST API", apiDocs) }) {
+                            Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(14.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Salin API", fontSize = 11.sp)
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color(0xFF0F172A), RoundedCornerShape(8.dp))
+                            .padding(12.dp)
+                    ) {
+                        Text(
+                            text = apiDocs,
+                            color = Color(0xFFA7F3D0),
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 10.sp,
+                            lineHeight = 14.sp
+                        )
+                    }
+                }
+            }
         }
     }
 }
