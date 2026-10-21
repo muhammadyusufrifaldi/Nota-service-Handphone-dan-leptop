@@ -1,4 +1,4 @@
-package com.aistudio.sesmartcell.srvnot.ui.screens
+package com.example.ui.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -57,11 +57,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.aistudio.sesmartcell.srvnot.data.entity.ServiceNoteEntity
-import com.aistudio.sesmartcell.srvnot.ui.ServiceViewModel
-import com.aistudio.sesmartcell.srvnot.ui.theme.PrimaryBlue
-import com.aistudio.sesmartcell.srvnot.ui.theme.StatusSuccess
-import com.aistudio.sesmartcell.srvnot.util.FormatUtils
+import com.example.data.entity.ServiceNoteEntity
+import com.example.ui.ServiceViewModel
+import com.example.ui.theme.PrimaryBlue
+import com.example.ui.theme.StatusSuccess
+import com.example.util.FormatUtils
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
