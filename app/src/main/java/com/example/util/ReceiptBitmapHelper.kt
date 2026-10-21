@@ -1,4 +1,5 @@
-package com.example.util
+import com.aistudio.sesmartcell.srvnot.data.entity.ServiceNoteEntity
+import com.aistudio.sesmartcell.srvnot.data.entity.StoreSettingsEntity
 
 import android.content.ContentValues
 import android.content.Context
