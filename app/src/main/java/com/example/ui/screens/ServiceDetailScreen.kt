@@ -117,4 +117,401 @@ fun ServiceDetailScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { onNavigateToEdit(note.id) })
+                    IconButton(onClick = { onNavigateToEdit(note.id) }) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit")
+                    }
+                    IconButton(onClick = { showDeleteConfirmDialog = true }) {
+                        Icon(Icons.Default.Delete, contentDescription = "Hapus", tint = Color.Red)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Status Pengerjaan Saat Ini:", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        StatusBadge(status = note.serviceStatus)
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text("Ubah Status Cepat:", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                    Spacer(modifier = Modifier.height(6.dp))
+                    val statusList = listOf("Menunggu", "Sedang Dikerjakan", "Menunggu Sparepart", "Selesai", "Diambil Pelanggan")
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        statusList.forEach { st ->
+                            FilterChip(
+                                selected = note.serviceStatus == st,
+                                onClick = {
+                                    if (note.serviceStatus != st) {
+                                        viewModel.updateStatus(note.noteNumber, st)
+                                        Toast.makeText(context, "Status diubah menjadi: $st", Toast.LENGTH_SHORT).show()
+                                    }
+                                },
+                                label = { Text(st, fontSize = 11.sp) }
+                            )
+                        }
+                    }
+                }
+            }
+
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(note.customerName, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                            Text(
+                                "WhatsApp: ${note.customerPhone}",
+                                fontSize = 13.sp,
+                                color = PrimaryBlue,
+                                modifier = Modifier.clickable {
+                                    WhatsAppHelper.openWhatsApp(context, note.customerPhone, "Halo Kak ${note.customerName}, kami dari ${storeSettings.storeName}...")
+                                }
+                            )
+                        }
+                        DeviceTypeBadge(deviceType = note.deviceType)
+                    }
+
+                    Divider(modifier = Modifier.padding(vertical = 10.dp))
+
+                    Text("Perangkat : ${note.brand} ${note.model}", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                    if (note.imeiOrSerial.isNotBlank()) {
+                        Text("IMEI / SN : ${note.imeiOrSerial}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Text("Kelengkapan: ${note.accessories.ifBlank { "Unit Saja" }}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("Masuk Pada : ${FormatUtils.formatDate(note.entryDate)}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (note.estimatedCompletionDate.isNotBlank()) {
+                        Text("Estimasi   : ${note.estimatedCompletionDate}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Text("Teknisi    : ${note.technicianName}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Text("Keluhan / Kerusakan:", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFDC2626))
+                    Text(note.issueDescription, fontSize = 13.sp)
+
+                    if (note.technicianCheckResult.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("Hasil Pengecekan Teknisi:", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
+                        Text(note.technicianCheckResult, fontSize = 13.sp)
+                    }
+
+                    if (note.repairAction.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("Tindakan Perbaikan:", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = StatusSuccess)
+                        Text(note.repairAction, fontSize = 13.sp)
+                    }
+
+                    if (note.notes.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("Catatan Internal:", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(note.notes, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Masa Garansi: ${note.warrantyPeriod} ${if (note.warrantyEndDate.isNotBlank()) "(s/d ${note.warrantyEndDate})" else ""}",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF047857)
+                    )
+                }
+            }
+
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Rincian Biaya & Pembayaran", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        PaymentStatusBadge(totalCost = note.totalCost, totalPaid = totalPaid)
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Biaya Jasa", fontSize = 13.sp)
+                        Text(FormatUtils.formatRupiah(note.serviceFee), fontSize = 13.sp)
+                    }
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Biaya Sparepart", fontSize = 13.sp)
+                        Text(FormatUtils.formatRupiah(note.sparepartFee), fontSize = 13.sp)
+                    }
+                    if (note.discount > 0) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Diskon", fontSize = 13.sp)
+                            Text("- ${FormatUtils.formatRupiah(note.discount)}", fontSize = 13.sp, color = StatusSuccess)
+                        }
+                    }
+
+                    Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Total Biaya", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        Text(FormatUtils.formatRupiah(note.totalCost), fontWeight = FontWeight.Bold, fontSize = 15.sp, color = PrimaryBlue)
+                    }
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Total Terbayar", fontSize = 13.sp)
+                        Text(FormatUtils.formatRupiah(totalPaid), fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Sisa Tagihan", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Text(
+                            text = if (sisa <= 0) "LUNAS (Rp 0)" else FormatUtils.formatRupiah(sisa),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            color = if (sisa <= 0) StatusSuccess else Color(0xFFDC2626)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Button(
+                        onClick = { showPaymentDialog = true },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("add_payment_dialog_button"),
+                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Icon(Icons.Default.Payment, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Tambah / Lunasi Pembayaran", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    }
+
+                    if (notePayments.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text("Riwayat Pembayaran Masuk:", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        notePayments.forEach { p ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp)
+                                    .background(Color(0xFFF8FAFC), RoundedCornerShape(6.dp))
+                                    .padding(8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text("${p.paymentType} • ${p.paymentMethod}", fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                                    Text(
+                                        "${FormatUtils.formatDate(p.paymentDate, "dd/MM/yyyy HH:mm")}${if (p.referenceNumber.isNotBlank()) " (Ref: ${p.referenceNumber})" else ""}",
+                                        fontSize = 10.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                Text(
+                                    FormatUtils.formatRupiah(p.amount),
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 13.sp,
+                                    color = Color(0xFF047857)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Button(
+                    onClick = { showPrintDialog = true },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp)
+                        .testTag("print_receipt_action_button"),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0F172A)),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Icon(Icons.Default.Print, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Cetak Nota", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                }
+
+                Button(
+                    onClick = { showImageDialog = true },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp)
+                        .testTag("image_receipt_action_button"),
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Icon(Icons.Default.Image, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Gambar Nota", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Text(
+                        text = "INTEGRASI WHATSAPP PELANGGAN",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF25D366)
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Button(
+                        onClick = {
+                            val msg = WhatsAppHelper.createStatusMessage(note, storeSettings, totalPaid, sisa)
+                            WhatsAppHelper.openWhatsApp(context, note.customerPhone, msg)
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF128C7E)),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("wa_status_button")
+                    ) {
+                        Icon(Icons.Default.Send, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("1. Kirim Update Status Pengerjaan", fontSize = 12.sp)
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedButton(
+                        onClick = {
+                            val msg = WhatsAppHelper.createPaymentInstruction(note, storeSettings, sisa)
+                            WhatsAppHelper.openWhatsApp(context, note.customerPhone, msg)
+                        },
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("wa_payment_instruction_button")
+                    ) {
+                        Icon(Icons.Default.Payment, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("2. Kirim Instruksi Pembayaran (Rekening/QRIS)", fontSize = 12.sp)
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedButton(
+                        onClick = {
+                            val msg = WhatsAppHelper.createCompletionMessage(note, storeSettings, totalPaid)
+                            WhatsAppHelper.openWhatsApp(context, note.customerPhone, msg)
+                        },
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("wa_completion_button")
+                    ) {
+                        Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("3. Kirim Bukti Pelunasan & Garansi", fontSize = 12.sp)
+                    }
+                }
+            }
+        }
+    }
+
+    if (showPrintDialog) {
+        PrintReceiptDialog(
+            note = note,
+            store = storeSettings,
+            totalPaid = totalPaid,
+            onDismiss = { showPrintDialog = false }
+        )
+    }
+
+    if (showImageDialog) {
+        ImageReceiptDialog(
+            note = note,
+            store = storeSettings,
+            totalPaid = totalPaid,
+            onDismiss = { showImageDialog = false }
+        )
+    }
+
+    if (showPaymentDialog) {
+        AddPaymentDialog(
+            note = note,
+            currentTotalPaid = totalPaid,
+            onDismiss = { showPaymentDialog = false },
+            onConfirm = { amount, method, ref, type ->
+                viewModel.addPaymentRecord(
+                    noteNumber = note.noteNumber,
+                    amount = amount,
+                    method = method,
+                    refNumber = ref,
+                    type = type
+                ) {
+                    Toast.makeText(context, "Pembayaran berhasil disimpan!", Toast.LENGTH_SHORT).show()
+                    showPaymentDialog = false
+                }
+            }
+        )
+    }
+
+    if (showDeleteConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmDialog = false },
+            title = { Text("Konfirmasi Hapus Nota") },
+            text = { Text("Apakah Anda yakin ingin menghapus nota ${note.noteNumber} (${note.customerName})? Data yang dihapus tidak dapat dipulihkan.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.deleteNote(note) {
+                            Toast.makeText(context, "Nota berhasil dihapus", Toast.LENGTH_SHORT).show()
+                            showDeleteConfirmDialog = false
+                            onNavigateBack()
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = StatusError)
+                ) {
+                    Text("Hapus Permanen")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmDialog = false }) {
+                    Text("Batal")
+                }
+            }
+        )
+    }
+}
