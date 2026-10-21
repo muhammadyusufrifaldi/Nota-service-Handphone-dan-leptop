@@ -1,4 +1,4 @@
-package com.aistudio.sesmartcell.srvnot.ui.screens
+package com.example.ui.screens
 
 import android.app.Activity
 import android.widget.Toast
@@ -69,10 +69,10 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.aistudio.sesmartcell.srvnot.R
-import com.aistudio.sesmartcell.srvnot.auth.AuthManager
-import com.aistudio.sesmartcell.srvnot.ui.theme.PrimaryBlue
-import com.aistudio.sesmartcell.srvnot.ui.theme.PrimaryBlueLight
+import com.example.R
+import com.example.auth.AuthManager
+import com.example.ui.theme.PrimaryBlue
+import com.example.ui.theme.PrimaryBlueLight
 
 @Composable
 fun AuthScreen(
