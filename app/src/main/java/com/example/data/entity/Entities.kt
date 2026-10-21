@@ -1,4 +1,4 @@
-package com.aistudio.sesmartcell.srvnot.data.entity
+package com.example.data.entity
 
 import androidx.room.Entity
 import androidx.room.Index
