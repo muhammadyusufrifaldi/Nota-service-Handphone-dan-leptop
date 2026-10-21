@@ -1,8 +1,6 @@
-package com.example.ui.screens
+package com.aistudio.sesmartcell.srvnot.ui.screens
 
-import android.content.Intent
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -17,13 +15,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Backup
-import androidx.compose.material.icons.filled.Payment
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Storefront
@@ -52,18 +50,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.R
-import com.example.data.entity.StoreSettingsEntity
-import com.example.ui.ServiceViewModel
-import com.example.ui.theme.PrimaryBlue
-import java.io.File
-import java.io.FileOutputStream
+import com.aistudio.sesmartcell.srvnot.auth.AuthManager
+import com.aistudio.sesmartcell.srvnot.ui.ServiceViewModel
+import com.aistudio.sesmartcell.srvnot.ui.theme.PrimaryBlue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -111,8 +104,7 @@ fun SettingsScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Account & Cloud Status Card
-            val appUser = com.example.auth.AuthManager.getAppUser(context)
+            val appUser = AuthManager.getAppUser(context)
             val scope = androidx.compose.runtime.rememberCoroutineScope()
             Card(
                 shape = RoundedCornerShape(12.dp),
@@ -129,7 +121,7 @@ fun SettingsScreen(
                         Box(
                             modifier = Modifier
                                 .size(40.dp)
-                                .clip(androidx.compose.foundation.shape.CircleShape)
+                                .clip(CircleShape)
                                 .background(PrimaryBlue),
                             contentAlignment = Alignment.Center
                         ) {
@@ -162,7 +154,7 @@ fun SettingsScreen(
 
                     OutlinedButton(
                         onClick = {
-                            com.example.auth.AuthManager.signOut(context, scope) {
+                            AuthManager.signOut(context, scope) {
                                 Toast.makeText(context, "Berhasil keluar dari akun", Toast.LENGTH_SHORT).show()
                             }
                         },
@@ -173,7 +165,6 @@ fun SettingsScreen(
                 }
             }
 
-            // Section 1: Profil Toko
             Card(
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
@@ -221,7 +212,6 @@ fun SettingsScreen(
                 }
             }
 
-            // Section 2: QRIS Toko
             Card(
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
@@ -253,7 +243,6 @@ fun SettingsScreen(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    // QRIS preview banner
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -280,7 +269,6 @@ fun SettingsScreen(
                 }
             }
 
-            // Section 3: Rekening Bank & E-Wallet
             Card(
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
@@ -315,7 +303,6 @@ fun SettingsScreen(
                 }
             }
 
-            // Section 4: Syarat Garansi
             Card(
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
@@ -334,7 +321,6 @@ fun SettingsScreen(
                 }
             }
 
-            // Save Settings Button
             Button(
                 onClick = {
                     val updated = currentSettings.copy(
@@ -364,7 +350,6 @@ fun SettingsScreen(
                 Text("Simpan Perubahan Pengaturan", fontWeight = FontWeight.Bold)
             }
 
-            // Section 5: Backup & Documentation
             Card(
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
@@ -380,7 +365,6 @@ fun SettingsScreen(
                         OutlinedButton(
                             onClick = {
                                 try {
-                                    val backupContent = "" // can trigger json backup
                                     Toast.makeText(context, "Backup database tersimpan otomatis di perangkat!", Toast.LENGTH_SHORT).show()
                                 } catch (e: Exception) {
                                     Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
