@@ -1,4 +1,4 @@
-package com.example.ui.theme
+package com.aistudio.sesmartcell.srvnot.ui.theme
 
 import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
