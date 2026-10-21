@@ -9,6 +9,7 @@ plugins {
 }
 
 android {
+    namespace = "com.sesmartcell.notaservice"
     compileSdk = 35
 
     defaultConfig {
