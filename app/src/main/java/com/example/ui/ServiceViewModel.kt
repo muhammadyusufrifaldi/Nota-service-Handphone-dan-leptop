@@ -22,7 +22,7 @@ import java.util.Locale
 class ServiceViewModel(application: Application) : AndroidViewModel(application) {
 
     private val database = AppDatabase.getInstance(application)
-    val firestoreSync = com.aistudio.sesmartcell.srvnot.data.firebase.FirestoreSyncManager(application)
+    val firestoreSync = com.example.data.firebase.FirestoreSyncManager(application)
     val repository = ServiceRepository(
         serviceNoteDao = database.serviceNoteDao(),
         paymentRecordDao = database.paymentRecordDao(),
