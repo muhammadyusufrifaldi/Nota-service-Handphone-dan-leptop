@@ -1,4 +1,4 @@
-package com.aistudio.sesmartcell.srvnot.auth
+package com.example.auth
 
 import android.app.Activity
 import android.content.Context
