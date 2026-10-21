@@ -15,13 +15,13 @@ targetSdk = 35
 }
 
     signingConfigs {
-        create("release") {
-            val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/my-upload-key.jks"
-            storeFile = file(keystorePath)
-            storePassword = System.getenv("KEYSTORE_PASSWORD")
-            keyAlias = "upload"
-            keyPassword = System.getenv("KEY_PASSWORD")
-        }
+    create("release") {
+        storeFile = file(System.getenv("KEYSTORE_PATH") ?: "my-upload-key.jks")
+        storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "android"
+        keyAlias = System.getenv("KEY_ALIAS") ?: "androiddebugkey"
+        keyPassword = System.getenv("KEY_PASSWORD") ?: "android"
+    }
+}
         create("debugConfig") {
             storeFile = file("${rootDir}/debug.keystore")
             storePassword = "android"
@@ -66,7 +66,9 @@ secrets {
     ignoreList.add("FIREBASE_APPCHECK_DEBUG_TOKEN")
 }
 
-googleServices { missingGoogleServicesStrategy = MissingGoogleServicesStrategy.WARN }
+googleServices {
+    isMissingGoogleServicesStrategy = MissingGoogleServicesStrategy.WARN
+}
 
 dependencies {
     implementation(platform(libs.androidx.compose.bom))
