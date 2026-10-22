@@ -1,4 +1,4 @@
-package com.example.data.entity
+package com.sesmartcell.notaservice.data.entity
 
 import androidx.room.Entity
 import androidx.room.Index
