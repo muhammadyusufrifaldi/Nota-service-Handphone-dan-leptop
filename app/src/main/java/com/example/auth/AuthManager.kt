@@ -1,4 +1,4 @@
-package com.example.auth
+package com.sesmartcell.notaservice.auth
 
 import android.app.Activity
 import android.content.Context
