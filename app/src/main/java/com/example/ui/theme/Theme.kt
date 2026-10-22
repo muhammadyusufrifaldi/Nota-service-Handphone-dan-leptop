@@ -1,4 +1,4 @@
-package com.example.ui.theme
+package com.sesmartcell.notaservice.ui.theme
 
 import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
