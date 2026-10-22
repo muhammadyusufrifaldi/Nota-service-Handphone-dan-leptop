@@ -1,16 +1,16 @@
-package com.example.data.database
+package com.sesmartcell.notaservice.data.database
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.example.data.dao.PaymentRecordDao
-import com.example.data.dao.ServiceNoteDao
-import com.example.data.dao.StoreSettingsDao
-import com.example.data.entity.PaymentRecordEntity
-import com.example.data.entity.ServiceNoteEntity
-import com.example.data.entity.StoreSettingsEntity
+import com.sesmartcell.notaservice.data.dao.PaymentRecordDao
+import com.sesmartcell.notaservice.data.dao.ServiceNoteDao
+import com.sesmartcell.notaservice.data.dao.StoreSettingsDao
+import com.sesmartcell.notaservice.data.entity.PaymentRecordEntity
+import com.sesmartcell.notaservice.data.entity.ServiceNoteEntity
+import com.sesmartcell.notaservice.data.entity.StoreSettingsEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
