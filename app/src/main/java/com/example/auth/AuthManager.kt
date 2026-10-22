@@ -22,7 +22,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import java.util.concurrent.TimeUnit
 
 data class AppUser(
     val uid: String,
@@ -43,7 +42,7 @@ object AuthManager {
     private const val KEY_OTP = "key_whatsapp_otp"
     private const val KEY_OTP_EXPIRES_AT = "key_whatsapp_otp_expires_at"
 
-    const val FALLBACK_WEB_CLIENT_ID = "242770648535-ra83pvtinim0562mi93ka0v5rq8513ni.apps.googleusercontent.com"
+    const val FALLBACK_WEB_CLIENT_ID = "242770648535-is2je1upeopu4m9ounr9qvijtlktut8a.apps.googleusercontent.com"
 
     val auth: FirebaseAuth
         get() = Firebase.auth
@@ -76,8 +75,7 @@ object AuthManager {
     }
 
     fun generateOtp(): String {
-        val code = (100000..999999).random()
-        return code.toString()
+        return (100000..999999).random().toString()
     }
 
     fun saveWhatsAppOtp(context: Context, otp: String, validForMinutes: Int = 5) {
@@ -222,7 +220,7 @@ object AuthManager {
                 }
 
                 if (googleIdToken.isNullOrBlank()) {
-                    onError("Google Sign-In gagal karena kredensial tidak valid. Coba buka aplikasi kembali.")
+                    onError("Google Sign-In gagal karena kredensial tidak valid. Pastikan konfigurasi Firebase sudah benar.")
                     return@launch
                 }
 
@@ -247,7 +245,7 @@ object AuthManager {
                 onCancelled()
             } catch (e: Exception) {
                 Log.e("Auth", "Gagal login dengan Google", e)
-                onError(e.localizedMessage ?: "Login Google gagal. Pastikan akun Google aktif dan perangkat terhubung ke internet.")
+                onError(e.localizedMessage ?: "Login Google gagal. Periksa Firebase, SHA-1, dan package name aplikasi.")
             }
         }
     }
