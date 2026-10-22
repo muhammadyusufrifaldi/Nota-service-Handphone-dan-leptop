@@ -64,8 +64,9 @@ data class StoreSettingsEntity(
     val storePhone: String = "081234567890",
     val qrisMerchantName: String = "SE SMART CELL INDONESIA",
     val qrisNmid: String = "ID102030405060",
+    val qrisImagePath: String = "",
     val bankAccounts: String = "BCA: 123-456-7890 (a/n SE SMART CELL)\nMANDIRI: 987-654-3210 (a/n SE SMART CELL)\nBRI: 5544-3322-1100 (a/n SE SMART CELL)",
     val ewalletAccounts: String = "DANA: 0812-3456-7890 (SE SMART CELL)\nOVO: 0812-3456-7890 (SE SMART CELL)\nGoPay: 0812-3456-7890 (SE SMART CELL)",
-    val warrantyTerms: String = "1. Garansi berlaku sesuai periode sejak tanggal pengambilan unit.\n2. Segel garansi wajib utuh, tidak rusak/sobek.\n3. Garansi tidak berlaku untuk kerusakan akibat ...",
+    val warrantyTerms: String = "1. Garansi berlaku sesuai periode sejak tanggal pengambilan unit.\n2. Segel garansi wajib utuh, tidak rusak/sobek.\n3. Garansi tidak berlaku untuk kerusakan akibat cairan, benturan, atau penggunaan tidak wajar.",
     val adminPin: String = "1234"
 )
