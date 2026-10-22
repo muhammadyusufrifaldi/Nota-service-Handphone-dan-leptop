@@ -1,4 +1,4 @@
-package com.example.data.dao
+package com.sesmartcell.notaservice.data.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -6,9 +6,9 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import com.example.data.entity.PaymentRecordEntity
-import com.example.data.entity.ServiceNoteEntity
-import com.example.data.entity.StoreSettingsEntity
+import com.sesmartcell.notaservice.data.entity.PaymentRecordEntity
+import com.sesmartcell.notaservice.data.entity.ServiceNoteEntity
+import com.sesmartcell.notaservice.data.entity.StoreSettingsEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
