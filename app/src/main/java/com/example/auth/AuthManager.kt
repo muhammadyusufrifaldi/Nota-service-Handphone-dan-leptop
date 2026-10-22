@@ -22,6 +22,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.util.concurrent.TimeUnit
 
 data class AppUser(
     val uid: String,
@@ -39,6 +40,8 @@ object AuthManager {
     private const val KEY_NAME = "key_user_name"
     private const val KEY_PHONE = "key_user_phone"
     private const val KEY_METHOD = "key_login_method"
+    private const val KEY_OTP = "key_whatsapp_otp"
+    private const val KEY_OTP_EXPIRES_AT = "key_whatsapp_otp_expires_at"
 
     const val FALLBACK_WEB_CLIENT_ID = "242770648535-ra83pvtinim0562mi93ka0v5rq8513ni.apps.googleusercontent.com"
 
@@ -70,6 +73,30 @@ object AuthManager {
         val digits = phoneNumber.filter { it.isDigit() }
         require(digits.length >= 8) { "Nomor handphone tidak valid" }
         return if (digits.startsWith("0")) "+62${digits.substring(1)}" else digits
+    }
+
+    fun generateOtp(): String {
+        val code = (100000..999999).random()
+        return code.toString()
+    }
+
+    fun saveWhatsAppOtp(context: Context, otp: String, validForMinutes: Int = 5) {
+        val expiresAt = System.currentTimeMillis() + (validForMinutes * 60_000L)
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit()
+            .putString(KEY_OTP, otp)
+            .putLong(KEY_OTP_EXPIRES_AT, expiresAt)
+            .apply()
+    }
+
+    fun getSavedWhatsAppOtp(context: Context): String? {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val expiresAt = prefs.getLong(KEY_OTP_EXPIRES_AT, 0L)
+        if (expiresAt > 0L && System.currentTimeMillis() > expiresAt) {
+            prefs.edit().remove(KEY_OTP).remove(KEY_OTP_EXPIRES_AT).apply()
+            return null
+        }
+        return prefs.getString(KEY_OTP, null)
     }
 
     fun getAppUser(context: Context): AppUser? {
@@ -135,13 +162,16 @@ object AuthManager {
         )
     }
 
-    fun openWhatsAppVerification(context: Context, phoneNumber: String, ownerName: String) {
+    fun openWhatsAppVerification(context: Context, phoneNumber: String, ownerName: String): String {
         val digits = phoneNumber.filter { it.isDigit() }
         require(digits.length >= 8) { "Nomor handphone tidak valid" }
 
+        val otp = generateOtp()
+        saveWhatsAppOtp(context, otp)
+
         val waNumber = if (digits.startsWith("0")) "62${digits.substring(1)}" else digits
         val displayName = ownerName.ifBlank { "Pemilik Toko" }
-        val message = "Halo, saya $displayName. Saya ingin verifikasi login aplikasi SE SMART CELL untuk nomor ${phoneNumber.trim()}. Mohon konfirmasi agar saya bisa masuk ke aplikasi."
+        val message = "Halo, saya $displayName. Saya ingin verifikasi login aplikasi SE SMART CELL. OTP verifikasi Anda adalah: $otp. Mohon balas konfirmasi agar saya bisa masuk ke aplikasi."
         val encodedText = Uri.encode(message)
 
         val waUri = Uri.parse("https://wa.me/$waNumber?text=$encodedText")
@@ -156,6 +186,8 @@ object AuthManager {
             fallbackIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(fallbackIntent)
         }
+
+        return otp
     }
 
     fun signInWithGoogle(
