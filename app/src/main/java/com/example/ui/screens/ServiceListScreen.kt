@@ -1,4 +1,4 @@
-package com.example.ui.screens
+package com.sesmartcell.notaservice.ui.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.clickable
@@ -60,16 +60,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.data.entity.ServiceNoteEntity
-import com.example.ui.ServiceViewModel
-import com.example.ui.components.DeviceTypeBadge
-import com.example.ui.components.PaymentStatusBadge
-import com.example.ui.components.PrintReceiptDialog
-import com.example.ui.components.StatusBadge
-import com.example.ui.theme.PrimaryBlue
-import com.example.ui.theme.StatusError
-import com.example.util.FormatUtils
-import com.example.util.WhatsAppHelper
+import com.sesmartcell.notaservice.data.entity.ServiceNoteEntity
+import com.sesmartcell.notaservice.ui.ServiceViewModel
+import com.sesmartcell.notaservice.ui.components.DeviceTypeBadge
+import com.sesmartcell.notaservice.ui.components.PaymentStatusBadge
+import com.sesmartcell.notaservice.ui.components.PrintReceiptDialog
+import com.sesmartcell.notaservice.ui.components.StatusBadge
+import com.sesmartcell.notaservice.ui.theme.PrimaryBlue
+import com.sesmartcell.notaservice.ui.theme.StatusError
+import com.sesmartcell.notaservice.util.FormatUtils
+import com.sesmartcell.notaservice.util.WhatsAppHelper
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
