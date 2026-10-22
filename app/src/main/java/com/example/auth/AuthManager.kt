@@ -12,21 +12,26 @@ import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.Firebase
+import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.auth.PhoneAuthCredential
+import com.google.firebase.auth.PhoneAuthOptions
+import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.util.concurrent.TimeUnit
 
 data class AppUser(
     val uid: String,
     val displayName: String,
     val phoneNumber: String?,
     val email: String?,
-    val loginMethod: String // "GOOGLE", "GUEST"
+    val loginMethod: String // "GOOGLE", "GUEST", "PHONE"
 )
 
 object AuthManager {
@@ -95,6 +100,42 @@ object AuthManager {
         return null
     }
 
+    fun loginWithPhone(
+        context: Context,
+        phoneNumber: String,
+        ownerName: String,
+        pin: String
+    ): AppUser {
+        val normalizedPhone = phoneNumber.trim()
+        if (normalizedPhone.length < 8) {
+            throw IllegalArgumentException("Nomor handphone tidak valid")
+        }
+
+        val uid = "phone_${normalizedPhone.filter { it.isDigit() }}"
+        val displayName = ownerName.ifBlank { "Pemilik SE SMART CELL" }
+
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit()
+            .putBoolean(KEY_LOGGED_IN, true)
+            .putString(KEY_UID, uid)
+            .putString(KEY_NAME, displayName)
+            .putString(KEY_PHONE, normalizedPhone)
+            .putString(KEY_METHOD, "PHONE")
+            .apply()
+
+        if (pin.isNotBlank()) {
+            prefs.edit().putString("key_user_pin", pin).apply()
+        }
+
+        return AppUser(
+            uid = uid,
+            displayName = displayName,
+            phoneNumber = normalizedPhone,
+            email = null,
+            loginMethod = "PHONE"
+        )
+    }
+
     fun loginAsGuest(context: Context): AppUser {
         val uid = "guest_admin"
         val name = "Operator Toko (Mode Cepat)"
@@ -115,6 +156,71 @@ object AuthManager {
             email = null,
             loginMethod = "GUEST"
         )
+    }
+
+    fun sendPhoneOtp(
+        activity: Activity,
+        phoneNumber: String,
+        onCodeSent: (String, PhoneAuthProvider.ForceResendingToken?) -> Unit,
+        onVerificationCompleted: (PhoneAuthCredential) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        val cleanPhoneNumber = phoneNumber.trim()
+        if (cleanPhoneNumber.length < 8) {
+            onError("Nomor handphone tidak valid")
+            return
+        }
+
+        val options = PhoneAuthOptions.newBuilder(auth)
+            .setPhoneNumber(cleanPhoneNumber)
+            .setTimeout(60L, TimeUnit.SECONDS)
+            .setActivity(activity)
+            .setCallbacks(object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+                override fun onCodeSent(
+                    verificationId: String,
+                    token: PhoneAuthProvider.ForceResendingToken
+                ) {
+                    onCodeSent(verificationId, token)
+                }
+
+                override fun onVerificationCompleted(credential: PhoneAuthCredential) {
+                    onVerificationCompleted(credential)
+                }
+
+                override fun onVerificationFailed(e: FirebaseException) {
+                    onError(e.localizedMessage ?: "Gagal mengirim OTP ke nomor handphone")
+                }
+            })
+            .build()
+
+        PhoneAuthProvider.verifyPhoneNumber(options)
+    }
+
+    fun verifyPhoneOtpAndSignIn(
+        verificationId: String,
+        smsCode: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        if (verificationId.isBlank() || smsCode.isBlank()) {
+            onError("Kode OTP tidak valid")
+            return
+        }
+
+        val credential = PhoneAuthProvider.getCredential(verificationId, smsCode)
+        auth.signInWithCredential(credential)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val user = task.result?.user
+                    if (user != null) {
+                        onSuccess()
+                    } else {
+                        onError("Verifikasi OTP berhasil, tetapi akun tidak ditemukan.")
+                    }
+                } else {
+                    onError(task.exception?.localizedMessage ?: "Verifikasi OTP gagal")
+                }
+            }
     }
 
     fun signInWithGoogle(
@@ -162,7 +268,7 @@ object AuthManager {
                 onCancelled()
             } catch (e: Exception) {
                 Log.e("Auth", "Gagal login dengan Google", e)
-                onError(e.localizedMessage ?: "Login Google gagal. Pastikan akun Google sudah aktif dan perangkatterhubung ke internet.")
+                onError(e.localizedMessage ?: "Login Google gagal. Pastikan akun Google sudah aktif dan perangkat terhubung ke internet.")
             }
         }
     }
