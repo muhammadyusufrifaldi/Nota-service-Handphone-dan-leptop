@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">SE SMART CELL</string>
-    <!-- Default Web Client ID fallback to prevent Unresolved reference during CI/GitHub Actions build -->
-    <string name="default_web_client_id" translatable="false">924997350802-qic387da451pel5nhlded195d26p8r19.apps.googleusercontent.com</string>
+    <!-- Use the actual Firebase web client ID for Google Sign-In -->
+    <string name="default_web_client_id" translatable="false">242770648535-ra83pvtinim0562mi93ka0v5rq8513ni.apps.googleusercontent.com</string>
 </resources>
