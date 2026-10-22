@@ -16,6 +16,9 @@ interface ServiceNoteDao {
     @Query("SELECT * FROM service_notes ORDER BY entryDate DESC")
     fun getAllNotes(): Flow<List<ServiceNoteEntity>>
 
+    @Query("SELECT * FROM service_notes ORDER BY entryDate DESC")
+    suspend fun getAllNotesSync(): List<ServiceNoteEntity>
+
     @Query("SELECT * FROM service_notes WHERE id = :id LIMIT 1")
     fun getNoteById(id: Long): Flow<ServiceNoteEntity?>
 
