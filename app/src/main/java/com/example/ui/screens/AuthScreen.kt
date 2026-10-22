@@ -2,7 +2,6 @@ package com.sesmartcell.notaservice.ui.screens
 
 import android.app.Activity
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -24,13 +23,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CloudDone
-import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -39,7 +36,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Tab
@@ -65,7 +61,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -82,15 +77,11 @@ fun AuthScreen(
     val scope = rememberCoroutineScope()
     var selectedTab by remember { mutableIntStateOf(0) }
     var isLoading by remember { mutableStateOf(false) }
-
     var phoneNumber by remember { mutableStateOf("") }
     var ownerName by remember { mutableStateOf("") }
     var pinCode by remember { mutableStateOf("") }
-
-    var showOtpDialog by remember { mutableStateOf(false) }
-    var verificationIdState by remember { mutableStateOf("") }
-    var enteredOtpCode by remember { mutableStateOf("") }
-    var isSendingOtp by remember { mutableStateOf(false) }
+    var showVerificationDialog by remember { mutableStateOf(false) }
+    var isSendingVerification by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -187,23 +178,11 @@ fun AuthScreen(
                     },
                     icon = { Icon(Icons.Default.CloudDone, contentDescription = null, modifier = Modifier.size(18.dp)) }
                 )
-                Tab(
-                    selected = selectedTab == 2,
-                    onClick = { selectedTab = 2 },
-                    text = {
-                        Text(
-                            "Mode Cepat",
-                            fontSize = 12.sp,
-                            fontWeight = if (selectedTab == 2) FontWeight.Bold else FontWeight.Normal
-                        )
-                    },
-                    icon = { Icon(Icons.Default.FlashOn, contentDescription = null, modifier = Modifier.size(18.dp)) }
-                )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            AnimatedVisibility(visible = selectedTab == 0) {
+            if (selectedTab == 0) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -222,7 +201,7 @@ fun AuthScreen(
                         }
 
                         Text(
-                            "Gunakan nomor HP Anda untuk masuk ke sistem nota dan data bengkel service.",
+                            "Masukkan nomor HP dan nama toko Anda, lalu verifikasi melalui WhatsApp agar login aman dan cepat.",
                             color = Color(0xFF94A3B8),
                             fontSize = 12.sp,
                             modifier = Modifier.padding(top = 4.dp, bottom = 14.dp)
@@ -279,7 +258,6 @@ fun AuthScreen(
                             label = { Text("PIN Akses (4-6 Angka, opsional)") },
                             leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = PrimaryBlueLight) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                            visualTransformation = PasswordVisualTransformation(),
                             singleLine = true,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -299,20 +277,30 @@ fun AuthScreen(
 
                         Button(
                             onClick = {
-                                if (phoneNumber.trim().length < 8) {
+                                val cleanedPhone = phoneNumber.trim()
+                                val cleanedOwner = ownerName.trim()
+                                if (cleanedPhone.length < 8) {
                                     Toast.makeText(context, "Masukkan nomor handphone yang valid!", Toast.LENGTH_SHORT).show()
                                     return@Button
                                 }
-                                val name = if (ownerName.isBlank()) "Pemilik SE SMART CELL" else ownerName.trim()
-                                AuthManager.loginWithPhone(
-                                    context = context,
-                                    phoneNumber = phoneNumber,
-                                    ownerName = name,
-                                    pin = pinCode
-                                )
-                                Toast.makeText(context, "Selamat datang, $name!", Toast.LENGTH_SHORT).show()
-                                onAuthSuccess()
+                                if (cleanedOwner.isBlank()) {
+                                    Toast.makeText(context, "Masukkan nama pemilik atau toko!", Toast.LENGTH_SHORT).show()
+                                    return@Button
+                                }
+
+                                isSendingVerification = true
+                                try {
+                                    AuthManager.openWhatsAppVerification(context, cleanedPhone, cleanedOwner)
+                                    AuthManager.loginWithPhone(context, cleanedPhone, cleanedOwner, pinCode)
+                                    Toast.makeText(context, "Verifikasi WhatsApp dibuka untuk $cleanedOwner", Toast.LENGTH_SHORT).show()
+                                    showVerificationDialog = true
+                                } catch (e: Exception) {
+                                    Toast.makeText(context, e.localizedMessage ?: "Gagal membuka verifikasi WhatsApp", Toast.LENGTH_LONG).show()
+                                } finally {
+                                    isSendingVerification = false
+                                }
                             },
+                            enabled = !isSendingVerification,
                             colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
                             shape = RoundedCornerShape(10.dp),
                             modifier = Modifier
@@ -320,71 +308,19 @@ fun AuthScreen(
                                 .height(50.dp)
                                 .testTag("phone_login_button")
                         ) {
-                            Icon(Icons.Default.CheckCircle, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Masuk Aplikasi Sekarang", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                        }
-
-                        Spacer(modifier = Modifier.height(10.dp))
-
-                        OutlinedButton(
-                            onClick = {
-                                val activity = context as? Activity
-                                if (activity == null) {
-                                    Toast.makeText(context, "Activity tidak tersedia", Toast.LENGTH_SHORT).show()
-                                    return@OutlinedButton
-                                }
-                                if (phoneNumber.trim().length < 8) {
-                                    Toast.makeText(context, "Masukkan nomor HP terlebih dahulu!", Toast.LENGTH_SHORT).show()
-                                    return@OutlinedButton
-                                }
-                                isSendingOtp = true
-                                AuthManager.sendPhoneOtp(
-                                    activity = activity,
-                                    phoneNumber = phoneNumber,
-                                    onCodeSent = { id, _ ->
-                                        isSendingOtp = false
-                                        verificationIdState = id
-                                        showOtpDialog = true
-                                        Toast.makeText(context, "Kode verifikasi telah dikirim via SMS!", Toast.LENGTH_SHORT).show()
-                                    },
-                                    onVerificationCompleted = { credential ->
-                                        isSendingOtp = false
-                                        AuthManager.auth.signInWithCredential(credential)
-                                            .addOnCompleteListener { task ->
-                                                if (task.isSuccessful) {
-                                                    Toast.makeText(context, "Verifikasi instan berhasil!", Toast.LENGTH_SHORT).show()
-                                                    onAuthSuccess()
-                                                }
-                                            }
-                                    },
-                                    onError = { err ->
-                                        isSendingOtp = false
-                                        Toast.makeText(context, "SMS Gateway: $err (Silakan gunakan tombol Masuk Aplikasi Sekarang)", Toast.LENGTH_LONG).show()
-                                    }
-                                )
-                            },
-                            enabled = !isSendingOtp,
-                            shape = RoundedCornerShape(10.dp),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(46.dp)
-                        ) {
-                            if (isSendingOtp) {
-                                CircularProgressIndicator(modifier = Modifier.size(18.dp), color = PrimaryBlueLight, strokeWidth = 2.dp)
+                            if (isSendingVerification) {
+                                CircularProgressIndicator(modifier = Modifier.size(18.dp), color = Color.White, strokeWidth = 2.dp)
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("Mengirim SMS OTP...", color = Color.White, fontSize = 12.sp)
+                                Text("Mengirim Verifikasi...", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                             } else {
-                                Icon(Icons.Default.PhoneAndroid, contentDescription = null, tint = PrimaryBlueLight, modifier = Modifier.size(16.dp))
+                                Icon(Icons.Default.CheckCircle, contentDescription = null, modifier = Modifier.size(18.dp))
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("Verifikasi OTP SMS Firebase", color = Color(0xFFE2E8F0), fontSize = 12.sp)
+                                Text("Verifikasi via WhatsApp", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                             }
                         }
                     }
                 }
-            }
-
-            AnimatedVisibility(visible = selectedTab == 1) {
+            } else {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -392,22 +328,17 @@ fun AuthScreen(
                         colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B).copy(alpha = 0.9f))
                     ) {
                         Column(modifier = Modifier.padding(18.dp)) {
-                            FeatureRow(
-                                icon = Icons.Default.CloudDone,
-                                title = "Penyimpanan Cloud Firebase",
-                                desc = "Data nota, pembayaran & pengaturan otomatis tersimpan di cloud Firestore"
+                            Text(
+                                "Autentikasi Google",
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                                fontSize = 15.sp
                             )
-                            Spacer(modifier = Modifier.height(12.dp))
-                            FeatureRow(
-                                icon = Icons.Default.Sync,
-                                title = "Sinkronisasi Realtime",
-                                desc = "Akses data nota Anda di berbagai perangkat Android kapan saja"
-                            )
-                            Spacer(modifier = Modifier.height(12.dp))
-                            FeatureRow(
-                                icon = Icons.Default.Lock,
-                                title = "Autentikasi Akun Google",
-                                desc = "Aman dengan integrasi resmi Google Credential Manager"
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                "Login dengan akun Google Anda untuk masuk ke sistem dengan aman.",
+                                color = Color(0xFF94A3B8),
+                                fontSize = 12.sp
                             )
                         }
                     }
@@ -476,53 +407,6 @@ fun AuthScreen(
                 }
             }
 
-            AnimatedVisibility(visible = selectedTab == 2) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B).copy(alpha = 0.9f))
-                ) {
-                    Column(modifier = Modifier.padding(18.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.FlashOn, contentDescription = null, tint = Color(0xFFFBBF24), modifier = Modifier.size(24.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                "Mulai Langsung Pakai",
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White,
-                                fontSize = 15.sp
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            "Gunakan aplikasi langsung di perangkat ini tanpa login akun online. Seluruh fitur pembuatan nota, cetak thermal Bluetooth, invoice PDF, QRIS pembayaran, dan laporan keuangan tetap berfungsi 100% menggunakan database lokal Room SQLite.",
-                            color = Color(0xFFCBD5E1),
-                            fontSize = 12.sp,
-                            lineHeight = 17.sp
-                        )
-
-                        Spacer(modifier = Modifier.height(18.dp))
-
-                        Button(
-                            onClick = {
-                                AuthManager.loginAsGuest(context)
-                                Toast.makeText(context, "Masuk mode langsung pakai!", Toast.LENGTH_SHORT).show()
-                                onAuthSuccess()
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2563EB)),
-                            shape = RoundedCornerShape(10.dp),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(50.dp)
-                                .testTag("guest_login_button")
-                        ) {
-                            Text("Buka Aplikasi Sekarang (Offline)", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                        }
-                    }
-                }
-            }
-
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
@@ -535,82 +419,39 @@ fun AuthScreen(
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        if (showOtpDialog) {
+        if (showVerificationDialog) {
             AlertDialog(
-                onDismissRequest = { showOtpDialog = false },
-                title = { Text("Verifikasi SMS OTP", fontWeight = FontWeight.Bold) },
+                onDismissRequest = { showVerificationDialog = false },
+                title = { Text("Verifikasi WhatsApp", fontWeight = FontWeight.Bold) },
                 text = {
                     Column {
                         Text(
-                            "Masukkan 6 digit kode yang dikirim ke nomor $phoneNumber:",
+                            "Silakan konfirmasi di WhatsApp untuk melanjutkan login ke nomor $phoneNumber.",
                             fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(12.dp))
-                        OutlinedTextField(
-                            value = enteredOtpCode,
-                            onValueChange = { if (it.length <= 6) enteredOtpCode = it },
-                            label = { Text("Kode OTP (6 digit)") },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth()
+                        Text(
+                            "Setelah konfirmasi diterima, Anda dapat masuk ke aplikasi.",
+                            fontSize = 12.sp,
+                            color = Color(0xFF94A3B8)
                         )
                     }
                 },
                 confirmButton = {
-                    Button(
-                        onClick = {
-                            if (enteredOtpCode.length < 6) {
-                                Toast.makeText(context, "Masukkan 6 digit kode OTP", Toast.LENGTH_SHORT).show()
-                                return@Button
-                            }
-                            AuthManager.verifyPhoneOtpAndSignIn(
-                                verificationId = verificationIdState,
-                                smsCode = enteredOtpCode,
-                                onSuccess = {
-                                    showOtpDialog = false
-                                    Toast.makeText(context, "Login nomor HP berhasil!", Toast.LENGTH_SHORT).show()
-                                    onAuthSuccess()
-                                },
-                                onError = { err ->
-                                    Toast.makeText(context, "Error: $err", Toast.LENGTH_LONG).show()
-                                }
-                            )
-                        }
-                    ) {
-                        Text("Verifikasi & Masuk")
+                    Button(onClick = {
+                        showVerificationDialog = false
+                        onAuthSuccess()
+                    }) {
+                        Text("Masuk Aplikasi")
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showOtpDialog = false }) {
-                        Text("Batal")
+                    TextButton(onClick = { showVerificationDialog = false }) {
+                        Text("Tutup")
                     }
                 }
             )
-        }
-    }
-}
-
-@Composable
-private fun FeatureRow(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    desc: String
-) {
-    Row(verticalAlignment = Alignment.Top) {
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(PrimaryBlue.copy(alpha = 0.2f)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(icon, contentDescription = null, tint = PrimaryBlueLight, modifier = Modifier.size(20.dp))
-        }
-        Spacer(modifier = Modifier.width(12.dp))
-        Column {
-            Text(title, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color.White)
-            Text(desc, fontSize = 11.sp, color = Color(0xFF94A3B8), lineHeight = 15.sp)
         }
     }
 }
