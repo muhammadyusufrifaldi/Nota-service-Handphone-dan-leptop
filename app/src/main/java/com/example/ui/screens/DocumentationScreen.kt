@@ -1,4 +1,4 @@
-package com.example.ui.screens
+package com.sesmartcell.notaservice.ui.screens
 
 import android.content.ClipData
 import android.content.ClipboardManager
