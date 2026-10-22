@@ -1,13 +1,13 @@
-package com.example.ui
+package com.sesmartcell.notaservice.ui
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.data.database.AppDatabase
-import com.example.data.entity.PaymentRecordEntity
-import com.example.data.entity.ServiceNoteEntity
-import com.example.data.entity.StoreSettingsEntity
-import com.example.data.repository.ServiceRepository
+import com.sesmartcell.notaservice.data.database.AppDatabase
+import com.sesmartcell.notaservice.data.entity.PaymentRecordEntity
+import com.sesmartcell.notaservice.data.entity.ServiceNoteEntity
+import com.sesmartcell.notaservice.data.entity.StoreSettingsEntity
+import com.sesmartcell.notaservice.data.repository.ServiceRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -22,7 +22,7 @@ import java.util.Locale
 class ServiceViewModel(application: Application) : AndroidViewModel(application) {
 
     private val database = AppDatabase.getInstance(application)
-    val firestoreSync = com.example.data.firebase.FirestoreSyncManager(application)
+    val firestoreSync = com.sesmartcell.notaservice.data.firebase.FirestoreSyncManager(application)
     val repository = ServiceRepository(
         serviceNoteDao = database.serviceNoteDao(),
         paymentRecordDao = database.paymentRecordDao(),
