@@ -121,7 +121,7 @@ fun AuthScreen(
             )
 
             Text(
-                text = "Aplikasi Nota Service HP & Laptop",
+                text = "Aplikasi Nota Service",
                 fontSize = 13.sp,
                 color = Color(0xFF93C5FD),
                 fontWeight = FontWeight.Medium
@@ -256,7 +256,7 @@ fun AuthScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Nota Service - Sistem Manajemen Nota & Service HP/Laptop\nVersi 1.0 Final - Siap Pakai",
+                text = "Versi 1.0 Final",
                 fontSize = 11.sp,
                 color = Color(0xFF64748B),
                 textAlign = TextAlign.Center
