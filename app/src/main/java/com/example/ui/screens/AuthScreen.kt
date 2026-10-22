@@ -1,4 +1,4 @@
-package com.example.ui.screens
+package com.sesmartcell.notaservice.ui.screens
 
 import android.app.Activity
 import android.widget.Toast
@@ -69,10 +69,10 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.R
-import com.example.auth.AuthManager
-import com.example.ui.theme.PrimaryBlue
-import com.example.ui.theme.PrimaryBlueLight
+import com.sesmartcell.notaservice.R
+import com.sesmartcell.notaservice.auth.AuthManager
+import com.sesmartcell.notaservice.ui.theme.PrimaryBlue
+import com.sesmartcell.notaservice.ui.theme.PrimaryBlueLight
 
 @Composable
 fun AuthScreen(
