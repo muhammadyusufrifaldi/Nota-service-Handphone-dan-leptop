@@ -1,11 +1,11 @@
-package com.example.util
+package com.sesmartcell.notaservice.util
 
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
-import com.example.data.entity.ServiceNoteEntity
-import com.example.data.entity.StoreSettingsEntity
+import com.sesmartcell.notaservice.data.entity.ServiceNoteEntity
+import com.sesmartcell.notaservice.data.entity.StoreSettingsEntity
 import java.net.URLEncoder
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
