@@ -9,11 +9,11 @@ plugins {
 }
 
 android {
-    namespace = "com.sesmartcell.notaservice"
+    namespace = "com.example"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.sesmartcell.notaservice"
+        applicationId = "com.example"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
