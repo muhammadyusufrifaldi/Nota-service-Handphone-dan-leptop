@@ -1,6 +1,5 @@
 package com.sesmartcell.notaservice.ui.screens
 
-import android.app.Activity
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -22,7 +21,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
@@ -38,18 +36,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
-import androidx.compose.material3.TabRowDefaults
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -74,9 +66,6 @@ fun AuthScreen(
     onAuthSuccess: () -> Unit
 ) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    var selectedTab by remember { mutableIntStateOf(0) }
-    var isLoading by remember { mutableStateOf(false) }
     var phoneNumber by remember { mutableStateOf("") }
     var ownerName by remember { mutableStateOf("") }
     var pinCode by remember { mutableStateOf("") }
@@ -116,7 +105,7 @@ fun AuthScreen(
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.se_smart_cell_logo),
-                    contentDescription = "Logo SE SMART CELL",
+                    contentDescription = "Logo Nota Service",
                     modifier = Modifier.fillMaxSize()
                 )
             }
@@ -124,7 +113,7 @@ fun AuthScreen(
             Spacer(modifier = Modifier.height(14.dp))
 
             Text(
-                text = "SE SMART CELL",
+                text = "Nota Service",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = Color.White,
@@ -140,263 +129,126 @@ fun AuthScreen(
 
             Spacer(modifier = Modifier.height(22.dp))
 
-            TabRow(
-                selectedTabIndex = selectedTab,
-                containerColor = Color(0xFF1E293B),
-                contentColor = Color.White,
-                indicator = { tabPositions ->
-                    TabRowDefaults.SecondaryIndicator(
-                        Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                        color = PrimaryBlueLight,
-                        height = 3.dp
-                    )
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B).copy(alpha = 0.9f))
             ) {
-                Tab(
-                    selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
-                    text = {
+                Column(modifier = Modifier.padding(18.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Security, contentDescription = null, tint = PrimaryBlueLight, modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            "Nomor HP",
-                            fontSize = 12.sp,
-                            fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal
+                            "Masuk dengan Nomor Handphone",
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            fontSize = 15.sp
                         )
-                    },
-                    icon = { Icon(Icons.Default.PhoneAndroid, contentDescription = null, modifier = Modifier.size(18.dp)) }
-                )
-                Tab(
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
-                    text = {
-                        Text(
-                            "Google",
-                            fontSize = 12.sp,
-                            fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal
-                        )
-                    },
-                    icon = { Icon(Icons.Default.CloudDone, contentDescription = null, modifier = Modifier.size(18.dp)) }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            if (selectedTab == 0) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B).copy(alpha = 0.9f))
-                ) {
-                    Column(modifier = Modifier.padding(18.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Security, contentDescription = null, tint = PrimaryBlueLight, modifier = Modifier.size(20.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                "Masuk dengan Nomor Handphone",
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White,
-                                fontSize = 15.sp
-                            )
-                        }
-
-                        Text(
-                            "Masukkan nomor HP dan nama pemilik toko. Sistem akan mengirimkan OTP ke WhatsApp untuk verifikasi.",
-                            color = Color(0xFF94A3B8),
-                            fontSize = 12.sp,
-                            modifier = Modifier.padding(top = 4.dp, bottom = 14.dp)
-                        )
-
-                        OutlinedTextField(
-                            value = phoneNumber,
-                            onValueChange = { phoneNumber = it },
-                            label = { Text("Nomor Handphone") },
-                            leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null, tint = PrimaryBlueLight) },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                            singleLine = true,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .testTag("phone_number_input"),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = PrimaryBlueLight,
-                                unfocusedBorderColor = Color(0xFF475569),
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
-                                focusedLabelColor = PrimaryBlueLight,
-                                unfocusedLabelColor = Color(0xFF94A3B8)
-                            ),
-                            shape = RoundedCornerShape(10.dp)
-                        )
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        OutlinedTextField(
-                            value = ownerName,
-                            onValueChange = { ownerName = it },
-                            label = { Text("Nama Pemilik / Teknisi Toko") },
-                            leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = PrimaryBlueLight) },
-                            singleLine = true,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .testTag("owner_name_input"),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = PrimaryBlueLight,
-                                unfocusedBorderColor = Color(0xFF475569),
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
-                                focusedLabelColor = PrimaryBlueLight,
-                                unfocusedLabelColor = Color(0xFF94A3B8)
-                            ),
-                            shape = RoundedCornerShape(10.dp)
-                        )
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        OutlinedTextField(
-                            value = pinCode,
-                            onValueChange = { if (it.length <= 6) pinCode = it },
-                            label = { Text("PIN Akses (opsional)") },
-                            leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = PrimaryBlueLight) },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-                            singleLine = true,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .testTag("pin_code_input"),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = PrimaryBlueLight,
-                                unfocusedBorderColor = Color(0xFF475569),
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
-                                focusedLabelColor = PrimaryBlueLight,
-                                unfocusedLabelColor = Color(0xFF94A3B8)
-                            ),
-                            shape = RoundedCornerShape(10.dp)
-                        )
-
-                        Spacer(modifier = Modifier.height(18.dp))
-
-                        Button(
-                            onClick = {
-                                val cleanedPhone = phoneNumber.trim()
-                                if (cleanedPhone.length < 8) {
-                                    Toast.makeText(context, "Masukkan nomor handphone yang valid!", Toast.LENGTH_SHORT).show()
-                                    return@Button
-                                }
-
-                                val name = if (ownerName.isBlank()) "Pemilik SE SMART CELL" else ownerName.trim()
-                                try {
-                                    AuthManager.openWhatsAppVerification(context, cleanedPhone, name)
-                                    showVerificationDialog = true
-                                    otpInput = ""
-                                    Toast.makeText(context, "OTP WhatsApp telah dikirim. Cek pesan WhatsApp Anda.", Toast.LENGTH_LONG).show()
-                                } catch (e: IllegalArgumentException) {
-                                    Toast.makeText(context, e.message ?: "Nomor handphone tidak valid", Toast.LENGTH_SHORT).show()
-                                }
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
-                            shape = RoundedCornerShape(10.dp),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(50.dp)
-                                .testTag("phone_login_button")
-                        ) {
-                            Icon(Icons.Default.CheckCircle, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Kirim OTP WhatsApp & Masuk", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                        }
-                    }
-                }
-            }
-
-            if (selectedTab == 1) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B).copy(alpha = 0.9f))
-                    ) {
-                        Column(modifier = Modifier.padding(18.dp)) {
-                            FeatureRow(
-                                icon = Icons.Default.CloudDone,
-                                title = "Penyimpanan Cloud Firebase",
-                                desc = "Data nota, pembayaran & pengaturan otomatis tersimpan di cloud Firestore"
-                            )
-                            Spacer(modifier = Modifier.height(12.dp))
-                            FeatureRow(
-                                icon = Icons.Default.PhoneAndroid,
-                                title = "Login Akun Google",
-                                desc = "Masuk dengan Google terintegrasi dengan Firebase Authentication"
-                            )
-                            Spacer(modifier = Modifier.height(12.dp))
-                            FeatureRow(
-                                icon = Icons.Default.Lock,
-                                title = "Autentikasi Aman",
-                                desc = "Google Sign-In menggunakan Credential Manager dari Google"
-                            )
-                        }
                     }
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Text(
+                        "Masukkan nomor HP dan nama pemilik toko. Sistem akan mengirimkan OTP ke WhatsApp untuk verifikasi akun yang benar.",
+                        color = Color(0xFF94A3B8),
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 4.dp, bottom = 14.dp)
+                    )
+
+                    OutlinedTextField(
+                        value = phoneNumber,
+                        onValueChange = { phoneNumber = it },
+                        label = { Text("Nomor Handphone") },
+                        leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null, tint = PrimaryBlueLight) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("phone_number_input"),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = PrimaryBlueLight,
+                            unfocusedBorderColor = Color(0xFF475569),
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedLabelColor = PrimaryBlueLight,
+                            unfocusedLabelColor = Color(0xFF94A3B8)
+                        ),
+                        shape = RoundedCornerShape(10.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    OutlinedTextField(
+                        value = ownerName,
+                        onValueChange = { ownerName = it },
+                        label = { Text("Nama Pemilik / Teknisi Toko") },
+                        leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = PrimaryBlueLight) },
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("owner_name_input"),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = PrimaryBlueLight,
+                            unfocusedBorderColor = Color(0xFF475569),
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedLabelColor = PrimaryBlueLight,
+                            unfocusedLabelColor = Color(0xFF94A3B8)
+                        ),
+                        shape = RoundedCornerShape(10.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    OutlinedTextField(
+                        value = pinCode,
+                        onValueChange = { if (it.length <= 6) pinCode = it },
+                        label = { Text("PIN Akses (opsional)") },
+                        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = PrimaryBlueLight) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("pin_code_input"),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = PrimaryBlueLight,
+                            unfocusedBorderColor = Color(0xFF475569),
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedLabelColor = PrimaryBlueLight,
+                            unfocusedLabelColor = Color(0xFF94A3B8)
+                        ),
+                        shape = RoundedCornerShape(10.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(18.dp))
 
                     Button(
                         onClick = {
-                            val activity = context as? Activity ?: return@Button
-                            isLoading = true
-                            AuthManager.signInWithGoogle(
-                                activity = activity,
-                                scope = scope,
-                                onSuccess = {
-                                    isLoading = false
-                                    Toast.makeText(context, "Selamat datang di SE SMART CELL!", Toast.LENGTH_SHORT).show()
-                                    onAuthSuccess()
-                                },
-                                onError = { error ->
-                                    isLoading = false
-                                    Toast.makeText(context, error, Toast.LENGTH_LONG).show()
-                                },
-                                onCancelled = {
-                                    isLoading = false
-                                }
-                            )
+                            val cleanedPhone = phoneNumber.trim()
+                            if (cleanedPhone.length < 8) {
+                                Toast.makeText(context, "Masukkan nomor handphone yang valid!", Toast.LENGTH_SHORT).show()
+                                return@Button
+                            }
+
+                            val name = if (ownerName.isBlank()) "Pemilik Nota Service" else ownerName.trim()
+                            try {
+                                AuthManager.openWhatsAppVerification(context, cleanedPhone, name)
+                                showVerificationDialog = true
+                                otpInput = ""
+                                Toast.makeText(context, "OTP WhatsApp telah dikirim. Cek pesan WhatsApp Anda.", Toast.LENGTH_LONG).show()
+                            } catch (e: IllegalArgumentException) {
+                                Toast.makeText(context, e.message ?: "Nomor handphone tidak valid", Toast.LENGTH_SHORT).show()
+                            }
                         },
-                        enabled = !isLoading,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.White,
-                            contentColor = Color(0xFF1F2937)
-                        ),
+                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
+                        shape = RoundedCornerShape(10.dp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(52.dp)
-                            .testTag("google_sign_in_button")
+                            .height(50.dp)
+                            .testTag("phone_login_button")
                     ) {
-                        if (isLoading) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                color = PrimaryBlue,
-                                strokeWidth = 2.5.dp
-                            )
-                        } else {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .clip(CircleShape)
-                                        .background(PrimaryBlue),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text("G", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                                }
-                                Spacer(modifier = Modifier.width(10.dp))
-                                Text(
-                                    text = "Masuk dengan Google",
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 15.sp,
-                                    color = Color(0xFF111827)
-                                )
-                            }
-                        }
+                        Icon(Icons.Default.CheckCircle, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Kirim OTP WhatsApp & Masuk", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                     }
                 }
             }
@@ -404,7 +256,7 @@ fun AuthScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "SE SMART CELL - Sistem Manajemen Nota & Service HP/Laptop\nVersi 1.0 Final - Siap Pakai",
+                text = "Nota Service - Sistem Manajemen Nota & Service HP/Laptop\nVersi 1.0 Final - Siap Pakai",
                 fontSize = 11.sp,
                 color = Color(0xFF64748B),
                 textAlign = TextAlign.Center
@@ -456,7 +308,7 @@ fun AuthScreen(
                             }
 
                             isVerifyingOtp = true
-                            val name = if (ownerName.isBlank()) "Pemilik SE SMART CELL" else ownerName.trim()
+                            val name = if (ownerName.isBlank()) "Pemilik Nota Service" else ownerName.trim()
                             AuthManager.loginWithPhone(
                                 context = context,
                                 phoneNumber = phoneNumber,
@@ -485,30 +337,6 @@ fun AuthScreen(
                     }
                 }
             )
-        }
-    }
-}
-
-@Composable
-private fun FeatureRow(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    desc: String
-) {
-    Row(verticalAlignment = Alignment.Top) {
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(PrimaryBlue.copy(alpha = 0.2f)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(icon, contentDescription = null, tint = PrimaryBlueLight, modifier = Modifier.size(20.dp))
-        }
-        Spacer(modifier = Modifier.width(12.dp))
-        Column {
-            Text(title, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color.White)
-            Text(desc, fontSize = 11.sp, color = Color(0xFF94A3B8), lineHeight = 15.sp)
         }
     }
 }
