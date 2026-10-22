@@ -1,4 +1,4 @@
-package com.example
+package com.sesmartcell.notaservice
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -44,19 +44,19 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.auth.AppUser
-import com.example.auth.AuthManager
-import com.example.ui.ServiceViewModel
-import com.example.ui.screens.AuthScreen
-import com.example.ui.screens.CreateEditNoteScreen
-import com.example.ui.screens.DashboardScreen
-import com.example.ui.screens.DocumentationScreen
-import com.example.ui.screens.ReportsScreen
-import com.example.ui.screens.ServiceDetailScreen
-import com.example.ui.screens.ServiceListScreen
-import com.example.ui.screens.SettingsScreen
-import com.example.ui.theme.MyApplicationTheme
-import com.example.ui.theme.PrimaryBlue
+import com.sesmartcell.notaservice.auth.AppUser
+import com.sesmartcell.notaservice.auth.AuthManager
+import com.sesmartcell.notaservice.ui.ServiceViewModel
+import com.sesmartcell.notaservice.ui.screens.AuthScreen
+import com.sesmartcell.notaservice.ui.screens.CreateEditNoteScreen
+import com.sesmartcell.notaservice.ui.screens.DashboardScreen
+import com.sesmartcell.notaservice.ui.screens.DocumentationScreen
+import com.sesmartcell.notaservice.ui.screens.ReportsScreen
+import com.sesmartcell.notaservice.ui.screens.ServiceDetailScreen
+import com.sesmartcell.notaservice.ui.screens.ServiceListScreen
+import com.sesmartcell.notaservice.ui.screens.SettingsScreen
+import com.sesmartcell.notaservice.ui.theme.MyApplicationTheme
+import com.sesmartcell.notaservice.ui.theme.PrimaryBlue
 import com.google.firebase.auth.FirebaseAuth
 
 enum class AppScreen {
