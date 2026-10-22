@@ -1,6 +1,11 @@
 package com.sesmartcell.notaservice.ui.screens
 
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -48,6 +53,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -57,6 +64,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sesmartcell.notaservice.auth.AuthManager
 import com.sesmartcell.notaservice.ui.ServiceViewModel
 import com.sesmartcell.notaservice.ui.theme.PrimaryBlue
+import java.io.File
+import java.io.FileOutputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,10 +84,37 @@ fun SettingsScreen(
 
     var qrisMerchantName by remember(currentSettings) { mutableStateOf(currentSettings.qrisMerchantName) }
     var qrisNmid by remember(currentSettings) { mutableStateOf(currentSettings.qrisNmid) }
+    var qrisImagePath by remember(currentSettings) { mutableStateOf(currentSettings.qrisImagePath) }
 
     var bankAccounts by remember(currentSettings) { mutableStateOf(currentSettings.bankAccounts) }
     var ewalletAccounts by remember(currentSettings) { mutableStateOf(currentSettings.ewalletAccounts) }
     var warrantyTerms by remember(currentSettings) { mutableStateOf(currentSettings.warrantyTerms) }
+
+    val qrisPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri == null) {
+            Toast.makeText(context, "Pilih gambar QRIS dibatalkan", Toast.LENGTH_SHORT).show()
+            return@rememberLauncherForActivityResult
+        }
+
+        try {
+            val destFile = File(context.filesDir, "qris_${System.currentTimeMillis()}.png")
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                FileOutputStream(destFile).use { output ->
+                    input.copyTo(output)
+                }
+            }
+            qrisImagePath = destFile.absolutePath
+            Toast.makeText(context, "QRIS berhasil dipilih", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Toast.makeText(context, "Gagal memilih gambar QRIS: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    val qrisPreviewBitmap = remember(qrisImagePath) {
+        if (qrisImagePath.isBlank()) null else BitmapFactory.decodeFile(qrisImagePath)
+    }
 
     Scaffold(
         topBar = {
@@ -241,28 +277,59 @@ fun SettingsScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = { qrisPickerLauncher.launch("image/*") },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
+                        ) {
+                            Icon(Icons.Default.QrCode, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Upload QRIS")
+                        }
+
+                        if (qrisImagePath.isNotBlank()) {
+                            OutlinedButton(
+                                onClick = {
+                                    qrisImagePath = ""
+                                    Toast.makeText(context, "QRIS berhasil dihapus", Toast.LENGTH_SHORT).show()
+                                },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text("Hapus QRIS")
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
 
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
+                            .height(180.dp)
+                            .clip(RoundedCornerShape(12.dp))
                             .background(Color(0xFFF1F5F9))
-                            .border(1.dp, Color(0xFFCBD5E1), RoundedCornerShape(8.dp))
-                            .padding(12.dp)
+                            .border(1.dp, Color(0xFFCBD5E1), RoundedCornerShape(12.dp))
+                            .padding(12.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                Icons.Default.QrCode,
-                                contentDescription = null,
-                                modifier = Modifier.size(48.dp),
-                                tint = PrimaryBlue
+                        if (qrisPreviewBitmap != null) {
+                            Image(
+                                bitmap = qrisPreviewBitmap.asImageBitmap(),
+                                contentDescription = "Preview QRIS",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Fit
                             )
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Column {
-                                Text("QRIS Statis Aktif", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                                Text("Merchant: $qrisMerchantName", fontSize = 11.sp, color = Color.DarkGray)
-                                Text("NMID: $qrisNmid", fontSize = 11.sp, color = Color.Gray)
+                        } else {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(Icons.Default.QrCode, contentDescription = null, modifier = Modifier.size(42.dp), tint = PrimaryBlue)
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text("Belum ada QRIS yang diupload", color = Color(0xFF475569))
                             }
                         }
                     }
@@ -330,6 +397,7 @@ fun SettingsScreen(
                         storePhone = storePhone.trim(),
                         qrisMerchantName = qrisMerchantName.trim(),
                         qrisNmid = qrisNmid.trim(),
+                        qrisImagePath = qrisImagePath.trim(),
                         bankAccounts = bankAccounts.trim(),
                         ewalletAccounts = ewalletAccounts.trim(),
                         warrantyTerms = warrantyTerms.trim()
