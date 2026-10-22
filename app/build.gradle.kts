@@ -57,10 +57,10 @@ android {
         buildConfig = true
     }
 
-    testOptions { 
-        unitTests { 
-            isIncludeAndroidResources = true 
-        } 
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
     }
 
     dependenciesInfo {
