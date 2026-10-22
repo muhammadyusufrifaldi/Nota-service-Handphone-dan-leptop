@@ -1,4 +1,4 @@
-package com.example.ui.screens
+package com.sesmartcell.notaservice.ui.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -57,11 +57,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.data.entity.ServiceNoteEntity
-import com.example.ui.ServiceViewModel
-import com.example.ui.theme.PrimaryBlue
-import com.example.ui.theme.StatusSuccess
-import com.example.util.FormatUtils
+import com.sesmartcell.notaservice.data.entity.ServiceNoteEntity
+import com.sesmartcell.notaservice.ui.ServiceViewModel
+import com.sesmartcell.notaservice.ui.theme.PrimaryBlue
+import com.sesmartcell.notaservice.ui.theme.StatusSuccess
+import com.sesmartcell.notaservice.util.FormatUtils
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
