@@ -47,7 +47,6 @@ import androidx.compose.ui.unit.sp
 import com.sesmartcell.notaservice.auth.AppUser
 import com.sesmartcell.notaservice.auth.AuthManager
 import com.sesmartcell.notaservice.ui.ServiceViewModel
-import com.sesmartcell.notaservice.ui.screens.AuthScreen
 import com.sesmartcell.notaservice.ui.screens.CreateEditNoteScreen
 import com.sesmartcell.notaservice.ui.screens.DashboardScreen
 import com.sesmartcell.notaservice.ui.screens.DocumentationScreen
@@ -94,11 +93,29 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppRoot(viewModel: ServiceViewModel) {
     val context = LocalContext.current
-    var currentUser by remember { mutableStateOf(AuthManager.getAppUser(context)) }
+    var currentUser by remember {
+        mutableStateOf(
+            AuthManager.getAppUser(context)
+                ?: AppUser(
+                    uid = "guest_user",
+                    displayName = "Operator Toko",
+                    phoneNumber = null,
+                    email = null,
+                    loginMethod = "PHONE"
+                )
+        )
+    }
 
     DisposableEffect(Unit) {
         val listener = FirebaseAuth.AuthStateListener { _ ->
             currentUser = AuthManager.getAppUser(context)
+                ?: AppUser(
+                    uid = "guest_user",
+                    displayName = "Operator Toko",
+                    phoneNumber = null,
+                    email = null,
+                    loginMethod = "PHONE"
+                )
         }
         AuthManager.auth.addAuthStateListener(listener)
         onDispose {
@@ -106,18 +123,10 @@ fun AppRoot(viewModel: ServiceViewModel) {
         }
     }
 
-    if (currentUser == null) {
-        AuthScreen(
-            onAuthSuccess = {
-                currentUser = AuthManager.getAppUser(context)
-            }
-        )
-    } else {
-        MainAppContainer(
-            viewModel = viewModel,
-            currentUser = currentUser!!
-        )
-    }
+    MainAppContainer(
+        viewModel = viewModel,
+        currentUser = currentUser
+    )
 }
 
 @Composable
