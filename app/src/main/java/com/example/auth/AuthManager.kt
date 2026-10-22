@@ -14,26 +14,21 @@ import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.Firebase
-import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.auth.PhoneAuthCredential
-import com.google.firebase.auth.PhoneAuthOptions
-import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import java.util.concurrent.TimeUnit
 
 data class AppUser(
     val uid: String,
     val displayName: String,
     val phoneNumber: String?,
     val email: String?,
-    val loginMethod: String // "GOOGLE", "GUEST", "PHONE"
+    val loginMethod: String // "GOOGLE", "PHONE"
 )
 
 object AuthManager {
@@ -141,10 +136,10 @@ object AuthManager {
     }
 
     fun openWhatsAppVerification(context: Context, phoneNumber: String, ownerName: String) {
-        val cleanPhone = phoneNumber.trim().filter { it.isDigit() }
-        require(cleanPhone.length >= 8) { "Nomor handphone tidak valid" }
+        val digits = phoneNumber.filter { it.isDigit() }
+        require(digits.length >= 8) { "Nomor handphone tidak valid" }
 
-        val waNumber = if (cleanPhone.startsWith("0")) "62${cleanPhone.substring(1)}" else cleanPhone
+        val waNumber = if (digits.startsWith("0")) "62${digits.substring(1)}" else digits
         val displayName = ownerName.ifBlank { "Pemilik Toko" }
         val message = "Halo, saya $displayName. Saya ingin verifikasi login aplikasi SE SMART CELL untuk nomor ${phoneNumber.trim()}. Mohon konfirmasi agar saya bisa masuk ke aplikasi."
         val encodedText = Uri.encode(message)
@@ -163,67 +158,6 @@ object AuthManager {
         }
     }
 
-    fun sendPhoneOtp(
-        activity: Activity,
-        phoneNumber: String,
-        onCodeSent: (String, PhoneAuthProvider.ForceResendingToken?) -> Unit,
-        onVerificationCompleted: (PhoneAuthCredential) -> Unit,
-        onError: (String) -> Unit
-    ) {
-        val cleanPhoneNumber = normalizePhoneNumber(phoneNumber)
-
-        val options = PhoneAuthOptions.newBuilder(auth)
-            .setPhoneNumber(cleanPhoneNumber)
-            .setTimeout(60L, TimeUnit.SECONDS)
-            .setActivity(activity)
-            .setCallbacks(object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
-                override fun onCodeSent(
-                    verificationId: String,
-                    token: PhoneAuthProvider.ForceResendingToken
-                ) {
-                    onCodeSent(verificationId, token)
-                }
-
-                override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-                    onVerificationCompleted(credential)
-                }
-
-                override fun onVerificationFailed(e: FirebaseException) {
-                    onError(e.localizedMessage ?: "Gagal mengirim OTP ke nomor handphone")
-                }
-            })
-            .build()
-
-        PhoneAuthProvider.verifyPhoneNumber(options)
-    }
-
-    fun verifyPhoneOtpAndSignIn(
-        verificationId: String,
-        smsCode: String,
-        onSuccess: () -> Unit,
-        onError: (String) -> Unit
-    ) {
-        if (verificationId.isBlank() || smsCode.isBlank()) {
-            onError("Kode OTP tidak valid")
-            return
-        }
-
-        val credential = PhoneAuthProvider.getCredential(verificationId, smsCode)
-        auth.signInWithCredential(credential)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    val user = task.result?.user
-                    if (user != null) {
-                        onSuccess()
-                    } else {
-                        onError("Verifikasi OTP berhasil, tetapi akun tidak ditemukan.")
-                    }
-                } else {
-                    onError(task.exception?.localizedMessage ?: "Verifikasi OTP gagal")
-                }
-            }
-    }
-
     fun signInWithGoogle(
         activity: Activity,
         scope: CoroutineScope,
@@ -235,12 +169,11 @@ object AuthManager {
         val serverClientId = getServerClientId(activity)
 
         if (serverClientId.isBlank()) {
-            onError("Google Sign-In tidak dikonfigurasi. Periksa client ID Firebase.")
+            onError("Google Sign-In belum dikonfigurasi. Periksa client ID Firebase di strings.xml.")
             return
         }
 
-        val signInOption = GetSignInWithGoogleOption.Builder(serverClientId = serverClientId)
-            .build()
+        val signInOption = GetSignInWithGoogleOption.Builder(serverClientId = serverClientId).build()
         val request = GetCredentialRequest.Builder()
             .addCredentialOption(signInOption)
             .build()
