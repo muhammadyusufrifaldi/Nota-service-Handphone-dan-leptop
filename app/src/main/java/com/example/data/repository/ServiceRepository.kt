@@ -4,7 +4,7 @@ import com.sesmartcell.notaservice.data.dao.PaymentRecordDao
 import com.sesmartcell.notaservice.data.dao.ServiceNoteDao
 import com.sesmartcell.notaservice.data.dao.StoreSettingsDao
 import com.sesmartcell.notaservice.data.entity.PaymentRecordEntity
-import com.sesmartcell.notaservice.data.entity.Entities
+import com.sesmartcell.notaservice.data.entity.ServiceNoteEntity
 import com.sesmartcell.notaservice.data.entity.StoreSettingsEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -90,6 +90,60 @@ class ServiceRepository(
             1
         }
         String.format(Locale.getDefault(), "%s-%03d", datePrefix, nextSeq)
+    }
+
+    fun generateCsvReport(
+        notes: List<ServiceNoteEntity>,
+        payments: List<PaymentRecordEntity>
+    ): String {
+        val paymentMap = payments.filter { it.isVerified }
+            .groupBy { it.noteNumber }
+            .mapValues { (_, list) -> list.sumOf { it.amount } }
+
+        val header = listOf(
+            "No Nota",
+            "Tanggal Masuk",
+            "Nama Pelanggan",
+            "Nomor HP",
+            "Tipe",
+            "Brand",
+            "Model",
+            "Status",
+            "Total Biaya",
+            "DP",
+            "Terbayar",
+            "Piutang",
+            "Teknisi"
+        ).joinToString(",")
+
+        val rows = notes.joinToString("\n") { note ->
+            val paid = paymentMap[note.noteNumber] ?: 0L
+            val total = note.totalCost
+            val piutang = maxOf(0L, total - paid)
+            listOf(
+                note.noteNumber,
+                SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(note.entryDate)),
+                note.customerName,
+                note.customerPhone,
+                note.deviceType,
+                note.brand,
+                note.model,
+                note.serviceStatus,
+                total.toString(),
+                note.downPayment.toString(),
+                paid.toString(),
+                piutang.toString(),
+                note.technicianName
+            ).joinToString(",") { value ->
+                val normalized = value.replace("\"", "\"\"")
+                "\"$normalized\""
+            }
+        }
+
+        return buildString {
+            appendLine(header)
+            append(rows)
+        }
     }
 
     suspend fun exportBackupJson(): String = withContext(Dispatchers.IO) {
