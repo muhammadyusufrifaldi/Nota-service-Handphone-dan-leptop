@@ -1,4 +1,4 @@
-package com.example.ui.components
+package com.sesmartcell.notaservice.ui.components
 
 import android.graphics.Bitmap
 import android.widget.Toast
@@ -54,14 +54,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.data.entity.ServiceNoteEntity
-import com.example.data.entity.StoreSettingsEntity
-import com.example.ui.theme.PrimaryBlue
-import com.example.ui.theme.StatusSuccess
-import com.example.util.FormatUtils
-import com.example.util.PrintReceiptHelper
-import com.example.util.ReceiptBitmapHelper
-import com.example.util.ReceiptType
+import com.sesmartcell.notaservice.data.entity.ServiceNoteEntity
+import com.sesmartcell.notaservice.data.entity.StoreSettingsEntity
+import com.sesmartcell.notaservice.ui.theme.PrimaryBlue
+import com.sesmartcell.notaservice.ui.theme.StatusSuccess
+import com.sesmartcell.notaservice.util.FormatUtils
+import com.sesmartcell.notaservice.util.PrintReceiptHelper
+import com.sesmartcell.notaservice.util.ReceiptBitmapHelper
+import com.sesmartcell.notaservice.util.ReceiptType
 
 @Composable
 fun PrintReceiptDialog(
