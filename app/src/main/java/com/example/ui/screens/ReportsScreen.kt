@@ -1,4 +1,4 @@
-package com.example.ui.screens
+package com.sesmartcell.notaservice.ui.screens
 
 import android.content.Intent
 import android.widget.Toast
@@ -47,11 +47,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.ui.ServiceViewModel
-import com.example.ui.theme.PrimaryBlue
-import com.example.ui.theme.StatusSuccess
-import com.example.ui.theme.StatusWarning
-import com.example.util.FormatUtils
+import com.sesmartcell.notaservice.ui.ServiceViewModel
+import com.sesmartcell.notaservice.ui.theme.PrimaryBlue
+import com.sesmartcell.notaservice.ui.theme.StatusSuccess
+import com.sesmartcell.notaservice.ui.theme.StatusWarning
+import com.sesmartcell.notaservice.util.FormatUtils
 import java.io.File
 import java.io.FileOutputStream
 import java.util.Calendar
