@@ -1,4 +1,4 @@
-package com.example.util
+package com.sesmartcell.notaservice.util
 
 import android.content.ContentValues
 import android.content.Context
@@ -15,8 +15,8 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.widget.Toast
 import androidx.core.content.FileProvider
-import com.example.data.entity.ServiceNoteEntity
-import com.example.data.entity.StoreSettingsEntity
+import com.sesmartcell.notaservice.data.entity.ServiceNoteEntity
+import com.sesmartcell.notaservice.data.entity.StoreSettingsEntity
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
