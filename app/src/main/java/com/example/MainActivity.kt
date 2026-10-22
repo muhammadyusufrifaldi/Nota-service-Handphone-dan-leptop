@@ -44,9 +44,11 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.auth.FirebaseAuth
 import com.sesmartcell.notaservice.auth.AppUser
 import com.sesmartcell.notaservice.auth.AuthManager
 import com.sesmartcell.notaservice.ui.ServiceViewModel
+import com.sesmartcell.notaservice.ui.screens.AuthScreen
 import com.sesmartcell.notaservice.ui.screens.CreateEditNoteScreen
 import com.sesmartcell.notaservice.ui.screens.DashboardScreen
 import com.sesmartcell.notaservice.ui.screens.DocumentationScreen
@@ -56,7 +58,6 @@ import com.sesmartcell.notaservice.ui.screens.ServiceListScreen
 import com.sesmartcell.notaservice.ui.screens.SettingsScreen
 import com.sesmartcell.notaservice.ui.theme.MyApplicationTheme
 import com.sesmartcell.notaservice.ui.theme.PrimaryBlue
-import com.google.firebase.auth.FirebaseAuth
 
 enum class AppScreen {
     DASHBOARD,
@@ -93,29 +94,11 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppRoot(viewModel: ServiceViewModel) {
     val context = LocalContext.current
-    var currentUser by remember {
-        mutableStateOf(
-            AuthManager.getAppUser(context)
-                ?: AppUser(
-                    uid = "guest_user",
-                    displayName = "Operator Toko",
-                    phoneNumber = null,
-                    email = null,
-                    loginMethod = "PHONE"
-                )
-        )
-    }
+    var currentUser by remember { mutableStateOf(AuthManager.getAppUser(context)) }
 
     DisposableEffect(Unit) {
         val listener = FirebaseAuth.AuthStateListener { _ ->
             currentUser = AuthManager.getAppUser(context)
-                ?: AppUser(
-                    uid = "guest_user",
-                    displayName = "Operator Toko",
-                    phoneNumber = null,
-                    email = null,
-                    loginMethod = "PHONE"
-                )
         }
         AuthManager.auth.addAuthStateListener(listener)
         onDispose {
@@ -123,10 +106,18 @@ fun AppRoot(viewModel: ServiceViewModel) {
         }
     }
 
-    MainAppContainer(
-        viewModel = viewModel,
-        currentUser = currentUser
-    )
+    if (currentUser == null) {
+        AuthScreen(
+            onAuthSuccess = {
+                currentUser = AuthManager.getAppUser(context)
+            }
+        )
+    } else {
+        MainAppContainer(
+            viewModel = viewModel,
+            currentUser = currentUser!!
+        )
+    }
 }
 
 @Composable
