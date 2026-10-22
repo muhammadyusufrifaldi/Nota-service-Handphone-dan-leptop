@@ -2,6 +2,8 @@ package com.sesmartcell.notaservice.auth
 
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.util.Log
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
@@ -69,6 +71,12 @@ object AuthManager {
         }
     }
 
+    fun normalizePhoneNumber(phoneNumber: String): String {
+        val digits = phoneNumber.filter { it.isDigit() }
+        require(digits.length >= 8) { "Nomor handphone tidak valid" }
+        return if (digits.startsWith("0")) "+62${digits.substring(1)}" else digits
+    }
+
     fun getAppUser(context: Context): AppUser? {
         val fbUser = currentUser
         if (fbUser != null) {
@@ -85,9 +93,9 @@ object AuthManager {
         val isLoggedIn = prefs.getBoolean(KEY_LOGGED_IN, false)
         if (isLoggedIn) {
             val uid = prefs.getString(KEY_UID, "guest_admin") ?: "guest_admin"
-            val name = prefs.getString(KEY_NAME, "Operator Toko (Mode Cepat)") ?: "Operator Toko (Mode Cepat)"
+            val name = prefs.getString(KEY_NAME, "Operator Toko") ?: "Operator Toko"
             val phone = prefs.getString(KEY_PHONE, "") ?: ""
-            val method = prefs.getString(KEY_METHOD, "GUEST") ?: "GUEST"
+            val method = prefs.getString(KEY_METHOD, "PHONE") ?: "PHONE"
             return AppUser(
                 uid = uid,
                 displayName = name,
@@ -106,11 +114,7 @@ object AuthManager {
         ownerName: String,
         pin: String
     ): AppUser {
-        val normalizedPhone = phoneNumber.trim()
-        if (normalizedPhone.length < 8) {
-            throw IllegalArgumentException("Nomor handphone tidak valid")
-        }
-
+        val normalizedPhone = normalizePhoneNumber(phoneNumber)
         val uid = "phone_${normalizedPhone.filter { it.isDigit() }}"
         val displayName = ownerName.ifBlank { "Pemilik SE SMART CELL" }
 
@@ -136,26 +140,27 @@ object AuthManager {
         )
     }
 
-    fun loginAsGuest(context: Context): AppUser {
-        val uid = "guest_admin"
-        val name = "Operator Toko (Mode Cepat)"
+    fun openWhatsAppVerification(context: Context, phoneNumber: String, ownerName: String) {
+        val cleanPhone = phoneNumber.trim().filter { it.isDigit() }
+        require(cleanPhone.length >= 8) { "Nomor handphone tidak valid" }
 
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit()
-            .putBoolean(KEY_LOGGED_IN, true)
-            .putString(KEY_UID, uid)
-            .putString(KEY_NAME, name)
-            .putString(KEY_PHONE, "")
-            .putString(KEY_METHOD, "GUEST")
-            .apply()
+        val waNumber = if (cleanPhone.startsWith("0")) "62${cleanPhone.substring(1)}" else cleanPhone
+        val displayName = ownerName.ifBlank { "Pemilik Toko" }
+        val message = "Halo, saya $displayName. Saya ingin verifikasi login aplikasi SE SMART CELL untuk nomor ${phoneNumber.trim()}. Mohon konfirmasi agar saya bisa masuk ke aplikasi."
+        val encodedText = Uri.encode(message)
 
-        return AppUser(
-            uid = uid,
-            displayName = name,
-            phoneNumber = null,
-            email = null,
-            loginMethod = "GUEST"
-        )
+        val waUri = Uri.parse("https://wa.me/$waNumber?text=$encodedText")
+        val intent = Intent(Intent.ACTION_VIEW, waUri)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+        try {
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            val fallbackUri = Uri.parse("https://api.whatsapp.com/send?phone=$waNumber&text=$encodedText")
+            val fallbackIntent = Intent(Intent.ACTION_VIEW, fallbackUri)
+            fallbackIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(fallbackIntent)
+        }
     }
 
     fun sendPhoneOtp(
@@ -165,11 +170,7 @@ object AuthManager {
         onVerificationCompleted: (PhoneAuthCredential) -> Unit,
         onError: (String) -> Unit
     ) {
-        val cleanPhoneNumber = phoneNumber.trim()
-        if (cleanPhoneNumber.length < 8) {
-            onError("Nomor handphone tidak valid")
-            return
-        }
+        val cleanPhoneNumber = normalizePhoneNumber(phoneNumber)
 
         val options = PhoneAuthOptions.newBuilder(auth)
             .setPhoneNumber(cleanPhoneNumber)
@@ -233,7 +234,13 @@ object AuthManager {
         val credentialManager = CredentialManager.create(activity)
         val serverClientId = getServerClientId(activity)
 
-        val signInOption = GetSignInWithGoogleOption.Builder(serverClientId = serverClientId).build()
+        if (serverClientId.isBlank()) {
+            onError("Google Sign-In tidak dikonfigurasi. Periksa client ID Firebase.")
+            return
+        }
+
+        val signInOption = GetSignInWithGoogleOption.Builder(serverClientId = serverClientId)
+            .build()
         val request = GetCredentialRequest.Builder()
             .addCredentialOption(signInOption)
             .build()
@@ -242,33 +249,40 @@ object AuthManager {
             try {
                 val result = credentialManager.getCredential(activity, request)
                 val credential = result.credential
-                if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
-                    val googleIdToken = GoogleIdTokenCredential.createFrom(credential.data).idToken
-                    val authCredential = GoogleAuthProvider.getCredential(googleIdToken, null)
-                    val userCredential = auth.signInWithCredential(authCredential).await()
-                    val user = userCredential.user
-                    if (user != null) {
-                        val prefs = activity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                        prefs.edit()
-                            .putBoolean(KEY_LOGGED_IN, true)
-                            .putString(KEY_UID, user.uid)
-                            .putString(KEY_NAME, user.displayName ?: user.email ?: "Pengguna Google")
-                            .putString(KEY_PHONE, user.phoneNumber ?: "")
-                            .putString(KEY_METHOD, "GOOGLE")
-                            .apply()
-                        onSuccess()
-                    } else {
-                        onError("Login Google berhasil tetapi akun tidak terbaca.")
+                val googleIdToken = when {
+                    credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL -> {
+                        GoogleIdTokenCredential.createFrom(credential.data).idToken
                     }
+                    else -> null
+                }
+
+                if (googleIdToken.isNullOrBlank()) {
+                    onError("Google Sign-In gagal karena kredensial tidak valid. Coba buka aplikasi kembali.")
+                    return@launch
+                }
+
+                val authCredential = GoogleAuthProvider.getCredential(googleIdToken, null)
+                val userCredential = auth.signInWithCredential(authCredential).await()
+                val user = userCredential.user
+                if (user != null) {
+                    val prefs = activity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                    prefs.edit()
+                        .putBoolean(KEY_LOGGED_IN, true)
+                        .putString(KEY_UID, user.uid)
+                        .putString(KEY_NAME, user.displayName ?: user.email ?: "Pengguna Google")
+                        .putString(KEY_PHONE, user.phoneNumber ?: "")
+                        .putString(KEY_METHOD, "GOOGLE")
+                        .apply()
+                    onSuccess()
                 } else {
-                    onError("Tipe kredensial tidak sesuai untuk Google Sign-In.")
+                    onError("Login Google berhasil tetapi akun tidak terbaca.")
                 }
             } catch (e: GetCredentialCancellationException) {
                 Log.w("Auth", "Google Sign-In dibatalkan: ${e.message}")
                 onCancelled()
             } catch (e: Exception) {
                 Log.e("Auth", "Gagal login dengan Google", e)
-                onError(e.localizedMessage ?: "Login Google gagal. Pastikan akun Google sudah aktif dan perangkat terhubung ke internet.")
+                onError(e.localizedMessage ?: "Login Google gagal. Pastikan akun Google aktif dan perangkat terhubung ke internet.")
             }
         }
     }
