@@ -1,48 +1,34 @@
 package com.sesmartcell.notaservice.auth
 
-import android.app.Activity
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import android.util.Log
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
-import androidx.credentials.CustomCredential
-import androidx.credentials.GetCredentialRequest
-import androidx.credentials.exceptions.GetCredentialCancellationException
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption
-import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
 data class AppUser(
     val uid: String,
     val displayName: String,
     val phoneNumber: String?,
     val email: String?,
-    val loginMethod: String // "GOOGLE", "PHONE"
+    val loginMethod: String // "PHONE"
 )
 
 object AuthManager {
 
     private const val PREFS_NAME = "se_smart_cell_auth_prefs"
+    private const val PREFS_USERS = "se_smart_cell_users_db"
     private const val KEY_LOGGED_IN = "key_is_logged_in"
     private const val KEY_UID = "key_user_uid"
     private const val KEY_NAME = "key_user_name"
     private const val KEY_PHONE = "key_user_phone"
     private const val KEY_METHOD = "key_login_method"
-    private const val KEY_OTP = "key_whatsapp_otp"
-    private const val KEY_OTP_EXPIRES_AT = "key_whatsapp_otp_expires_at"
-
-    const val FALLBACK_WEB_CLIENT_ID = "242770648535-is2je1upeopu4m9ounr9qvijtlktut8a.apps.googleusercontent.com"
 
     val auth: FirebaseAuth
         get() = Firebase.auth
@@ -54,64 +40,26 @@ object AuthManager {
             null
         }
 
-    fun getServerClientId(context: Context): String {
-        return try {
-            val resId = context.resources.getIdentifier("default_web_client_id", "string", context.packageName)
-            if (resId != 0) {
-                val str = context.getString(resId)
-                if (str.isNotBlank()) str else FALLBACK_WEB_CLIENT_ID
-            } else {
-                FALLBACK_WEB_CLIENT_ID
-            }
-        } catch (e: Exception) {
-            FALLBACK_WEB_CLIENT_ID
-        }
-    }
-
     fun normalizePhoneNumber(phoneNumber: String): String {
         val digits = phoneNumber.filter { it.isDigit() }
         require(digits.length >= 8) { "Nomor handphone tidak valid" }
         return if (digits.startsWith("0")) "+62${digits.substring(1)}" else digits
     }
 
-    fun generateOtp(): String {
-        return (100000..999999).random().toString()
-    }
-
-    fun saveWhatsAppOtp(context: Context, otp: String, validForMinutes: Int = 5) {
-        val expiresAt = System.currentTimeMillis() + (validForMinutes * 60_000L)
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit()
-            .putString(KEY_OTP, otp)
-            .putLong(KEY_OTP_EXPIRES_AT, expiresAt)
-            .apply()
-    }
-
-    fun getSavedWhatsAppOtp(context: Context): String? {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val expiresAt = prefs.getLong(KEY_OTP_EXPIRES_AT, 0L)
-        if (expiresAt > 0L && System.currentTimeMillis() > expiresAt) {
-            prefs.edit().remove(KEY_OTP).remove(KEY_OTP_EXPIRES_AT).apply()
-            return null
-        }
-        return prefs.getString(KEY_OTP, null)
-    }
-
     fun getAppUser(context: Context): AppUser? {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val isLoggedIn = prefs.getBoolean(KEY_LOGGED_IN, false)
-        val fbUser = currentUser
 
-        if (isLoggedIn || fbUser != null) {
-            val uid = prefs.getString(KEY_UID, fbUser?.uid ?: "guest_admin") ?: fbUser?.uid ?: "guest_admin"
-            val name = prefs.getString(KEY_NAME, fbUser?.displayName ?: fbUser?.email ?: "Pengguna Toko") ?: "Pengguna Toko"
-            val phone = prefs.getString(KEY_PHONE, fbUser?.phoneNumber ?: "") ?: ""
-            val method = prefs.getString(KEY_METHOD, if (fbUser != null) "GOOGLE" else "PHONE") ?: "PHONE"
+        if (isLoggedIn) {
+            val uid = prefs.getString(KEY_UID, "guest_admin") ?: "guest_admin"
+            val name = prefs.getString(KEY_NAME, "Operator Toko") ?: "Operator Toko"
+            val phone = prefs.getString(KEY_PHONE, "") ?: ""
+            val method = prefs.getString(KEY_METHOD, "PHONE") ?: "PHONE"
             return AppUser(
                 uid = uid,
                 displayName = name,
                 phoneNumber = phone.ifBlank { null },
-                email = fbUser?.email,
+                email = null,
                 loginMethod = method
             )
         }
@@ -119,166 +67,90 @@ object AuthManager {
         return null
     }
 
-    fun loginWithPhone(
+    fun registerUser(
         context: Context,
         phoneNumber: String,
         ownerName: String,
         pin: String
-    ): AppUser {
-        val normalizedPhone = normalizePhoneNumber(phoneNumber)
-        val uid = "phone_${normalizedPhone.filter { it.isDigit() }}"
-        val displayName = ownerName.ifBlank { "Pemilik SE SMART CELL" }
+    ): Result<AppUser> {
+        return try {
+            val normalizedPhone = normalizePhoneNumber(phoneNumber)
+            if (pin.length < 4) {
+                return Result.failure(IllegalArgumentException("PIN minimal 4 digit"))
+            }
+            val uid = "phone_${normalizedPhone.filter { it.isDigit() }}"
+            val displayName = ownerName.ifBlank { "Pemilik Toko" }
 
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit()
-            .putBoolean(KEY_LOGGED_IN, true)
-            .putString(KEY_UID, uid)
-            .putString(KEY_NAME, displayName)
-            .putString(KEY_PHONE, normalizedPhone)
-            .putString(KEY_METHOD, "PHONE")
-            .commit()
+            val prefsUsers = context.getSharedPreferences(PREFS_USERS, Context.MODE_PRIVATE)
+            prefsUsers.edit()
+                .putString("name_$normalizedPhone", displayName)
+                .putString("pin_$normalizedPhone", pin)
+                .putString("uid_$normalizedPhone", uid)
+                .commit()
 
-        if (pin.isNotBlank()) {
-            prefs.edit().putString("key_user_pin", pin).apply()
-        }
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.edit()
+                .putBoolean(KEY_LOGGED_IN, true)
+                .putString(KEY_UID, uid)
+                .putString(KEY_NAME, displayName)
+                .putString(KEY_PHONE, normalizedPhone)
+                .putString(KEY_METHOD, "PHONE")
+                .commit()
 
-        return AppUser(
-            uid = uid,
-            displayName = displayName,
-            phoneNumber = normalizedPhone,
-            email = null,
-            loginMethod = "PHONE"
-        )
-    }
-
-    fun openWhatsAppVerification(context: Context, phoneNumber: String, ownerName: String): String {
-        val digits = phoneNumber.filter { it.isDigit() }
-        require(digits.length >= 8) { "Nomor handphone tidak valid" }
-
-        val otp = generateOtp()
-        saveWhatsAppOtp(context, otp)
-
-        val waNumber = if (digits.startsWith("0")) "62${digits.substring(1)}" else digits
-        val displayName = ownerName.ifBlank { "Pemilik Toko" }
-        val message = "Halo, saya $displayName. Saya ingin verifikasi login aplikasi SE SMART CELL. OTP verifikasi Anda adalah: $otp. Mohon balas konfirmasi agar saya bisa masuk ke aplikasi."
-        val encodedText = Uri.encode(message)
-
-        val waUri = Uri.parse("https://wa.me/$waNumber?text=$encodedText")
-        val intent = Intent(Intent.ACTION_VIEW, waUri)
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-
-        try {
-            context.startActivity(intent)
+            Result.success(
+                AppUser(
+                    uid = uid,
+                    displayName = displayName,
+                    phoneNumber = normalizedPhone,
+                    email = null,
+                    loginMethod = "PHONE"
+                )
+            )
         } catch (e: Exception) {
-            val fallbackUri = Uri.parse("https://api.whatsapp.com/send?phone=$waNumber&text=$encodedText")
-            val fallbackIntent = Intent(Intent.ACTION_VIEW, fallbackUri)
-            fallbackIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            context.startActivity(fallbackIntent)
-        }
-
-        return otp
-    }
-
-    fun signInWithGoogle(
-        activity: Activity,
-        scope: CoroutineScope,
-        onSuccess: () -> Unit,
-        onError: (String) -> Unit,
-        onCancelled: () -> Unit = {}
-    ) {
-        val credentialManager = CredentialManager.create(activity)
-        val serverClientId = getServerClientId(activity)
-
-        if (serverClientId.isBlank()) {
-            onError("Google Sign-In belum dikonfigurasi. Periksa client ID Firebase di strings.xml.")
-            return
-        }
-
-        val signInOption = GetSignInWithGoogleOption.Builder(serverClientId = serverClientId).build()
-        val request = GetCredentialRequest.Builder()
-            .addCredentialOption(signInOption)
-            .build()
-
-        scope.launch {
-            try {
-                val result = credentialManager.getCredential(activity, request)
-                val credential = result.credential
-                val googleIdToken = when {
-                    credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL -> {
-                        GoogleIdTokenCredential.createFrom(credential.data).idToken
-                    }
-                    else -> null
-                }
-
-                if (googleIdToken.isNullOrBlank()) {
-                    onError("Google Sign-In gagal karena kredensial tidak valid. Pastikan konfigurasi Firebase sudah benar.")
-                    return@launch
-                }
-
-                val authCredential = GoogleAuthProvider.getCredential(googleIdToken, null)
-                val userCredential = auth.signInWithCredential(authCredential).await()
-                val user = userCredential.user
-                if (user != null) {
-                    val prefs = activity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                    prefs.edit()
-                        .putBoolean(KEY_LOGGED_IN, true)
-                        .putString(KEY_UID, user.uid)
-                        .putString(KEY_NAME, user.displayName ?: user.email ?: "Pengguna Google")
-                        .putString(KEY_PHONE, user.phoneNumber ?: "")
-                        .putString(KEY_METHOD, "GOOGLE")
-                        .commit()
-                    onSuccess()
-                } else {
-                    onError("Login Google berhasil tetapi akun tidak terbaca.")
-                }
-            } catch (e: GetCredentialCancellationException) {
-                Log.w("Auth", "Google Sign-In dibatalkan: ${e.message}")
-                onCancelled()
-            } catch (e: Exception) {
-                Log.e("Auth", "Gagal login dengan Google", e)
-                onError(e.localizedMessage ?: "Login Google gagal. Periksa Firebase, SHA-1, dan package name aplikasi.")
-            }
+            Result.failure(e)
         }
     }
 
-    fun attemptSilentSignIn(
+    fun loginWithPhonePin(
         context: Context,
-        scope: CoroutineScope,
-        onSuccess: () -> Unit,
-        onUnauthenticated: () -> Unit
-    ) {
-        if (currentUser != null || getAppUser(context) != null) {
-            onSuccess()
-            return
-        }
+        phoneNumber: String,
+        pin: String
+    ): Result<AppUser> {
+        return try {
+            val normalizedPhone = normalizePhoneNumber(phoneNumber)
+            val prefsUsers = context.getSharedPreferences(PREFS_USERS, Context.MODE_PRIVATE)
+            val savedPin = prefsUsers.getString("pin_$normalizedPhone", null)
 
-        val serverClientId = getServerClientId(context)
-        val credentialManager = CredentialManager.create(context)
-        val googleIdOption = GetGoogleIdOption.Builder()
-            .setFilterByAuthorizedAccounts(true)
-            .setServerClientId(serverClientId)
-            .setAutoSelectEnabled(true)
-            .build()
-
-        val request = GetCredentialRequest.Builder()
-            .addCredentialOption(googleIdOption)
-            .build()
-
-        scope.launch {
-            try {
-                val result = credentialManager.getCredential(context, request)
-                val credential = result.credential
-                if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
-                    val googleIdToken = GoogleIdTokenCredential.createFrom(credential.data).idToken
-                    val authCredential = GoogleAuthProvider.getCredential(googleIdToken, null)
-                    auth.signInWithCredential(authCredential).await()
-                    onSuccess()
-                } else {
-                    onUnauthenticated()
-                }
-            } catch (e: Exception) {
-                onUnauthenticated()
+            if (savedPin == null) {
+                return Result.failure(IllegalStateException("Nomor HP belum terdaftar. Silakan daftar akun baru terlebih dahulu."))
             }
+            if (savedPin != pin) {
+                return Result.failure(IllegalArgumentException("PIN Akses salah. Periksa kembali PIN Anda."))
+            }
+
+            val name = prefsUsers.getString("name_$normalizedPhone", "Pemilik Toko") ?: "Pemilik Toko"
+            val uid = prefsUsers.getString("uid_$normalizedPhone", "phone_${normalizedPhone.filter { it.isDigit() }}") ?: "phone_${normalizedPhone.filter { it.isDigit() }}"
+
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.edit()
+                .putBoolean(KEY_LOGGED_IN, true)
+                .putString(KEY_UID, uid)
+                .putString(KEY_NAME, name)
+                .putString(KEY_PHONE, normalizedPhone)
+                .putString(KEY_METHOD, "PHONE")
+                .commit()
+
+            Result.success(
+                AppUser(
+                    uid = uid,
+                    displayName = name,
+                    phoneNumber = normalizedPhone,
+                    email = null,
+                    loginMethod = "PHONE"
+                )
+            )
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 

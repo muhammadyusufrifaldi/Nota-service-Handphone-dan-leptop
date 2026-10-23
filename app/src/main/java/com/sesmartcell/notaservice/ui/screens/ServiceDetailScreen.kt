@@ -470,12 +470,16 @@ fun ServiceDetailScreen(
         )
     }
 
+    var showPaymentSuccessDialog by remember { mutableStateOf(false) }
+    var savedPaymentAmount by remember { mutableStateOf(0L) }
+
     if (showPaymentDialog) {
         AddPaymentDialog(
             note = note,
             currentTotalPaid = totalPaid,
             onDismiss = { showPaymentDialog = false },
             onConfirm = { amount, method, ref, type ->
+                savedPaymentAmount = amount
                 viewModel.addPaymentRecord(
                     noteNumber = note.noteNumber,
                     amount = amount,
@@ -483,8 +487,24 @@ fun ServiceDetailScreen(
                     refNumber = ref,
                     type = type
                 ) {
-                    Toast.makeText(context, "Pembayaran berhasil disimpan!", Toast.LENGTH_SHORT).show()
                     showPaymentDialog = false
+                    showPaymentSuccessDialog = true
+                }
+            }
+        )
+    }
+
+    if (showPaymentSuccessDialog) {
+        AlertDialog(
+            onDismissRequest = { },
+            title = { Text("Berhasil Disimpan!", fontWeight = FontWeight.Bold) },
+            text = { Text("Pembayaran sebesar ${FormatUtils.formatRupiah(savedPaymentAmount)} berhasil disimpan dan diverifikasi.") },
+            confirmButton = {
+                Button(
+                    onClick = { showPaymentSuccessDialog = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
+                ) {
+                    Text("OK")
                 }
             }
         )
