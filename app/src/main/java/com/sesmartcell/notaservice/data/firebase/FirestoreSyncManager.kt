@@ -16,8 +16,16 @@ import kotlinx.coroutines.withContext
 class FirestoreSyncManager(private val context: Context) {
 
     private val db: FirebaseFirestore by lazy {
-        val dbId = context.getString(R.string.firestore_database_id)
-        FirebaseFirestore.getInstance(dbId)
+        try {
+            val dbId = context.getString(R.string.firestore_database_id)
+            if (dbId.isNotBlank() && dbId != "(default)") {
+                FirebaseFirestore.getInstance(dbId)
+            } else {
+                FirebaseFirestore.getInstance()
+            }
+        } catch (e: Exception) {
+            FirebaseFirestore.getInstance()
+        }
     }
 
     private fun getUserId(): String? = AuthManager.currentUser?.uid ?: AuthManager.getAppUser(context)?.uid

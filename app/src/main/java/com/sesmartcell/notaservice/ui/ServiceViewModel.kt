@@ -134,19 +134,21 @@ class ServiceViewModel(application: Application) : AndroidViewModel(application)
     ) {
         viewModelScope.launch {
             val id = repository.saveNoteWithPayment(note, initialPayment, paymentMethod, refNumber)
-            firestoreSync.syncNoteToCloud(note)
-            if (initialPayment > 0) {
-                firestoreSync.syncPaymentToCloud(
-                    PaymentRecordEntity(
-                        noteNumber = note.noteNumber,
-                        amount = initialPayment,
-                        paymentMethod = paymentMethod,
-                        referenceNumber = refNumber,
-                        paymentDate = System.currentTimeMillis(),
-                        paymentType = if (initialPayment >= note.totalCost) "Pelunasan" else "DP"
+            try {
+                firestoreSync.syncNoteToCloud(note)
+                if (initialPayment > 0) {
+                    firestoreSync.syncPaymentToCloud(
+                        PaymentRecordEntity(
+                            noteNumber = note.noteNumber,
+                            amount = initialPayment,
+                            paymentMethod = paymentMethod,
+                            referenceNumber = refNumber,
+                            paymentDate = System.currentTimeMillis(),
+                            paymentType = if (initialPayment >= note.totalCost) "Pelunasan" else "DP"
+                        )
                     )
-                )
-            }
+                }
+            } catch (e: Exception) {}
             onSuccess(id)
         }
     }
@@ -154,7 +156,9 @@ class ServiceViewModel(application: Application) : AndroidViewModel(application)
     fun updateNote(note: ServiceNoteEntity, onSuccess: () -> Unit) {
         viewModelScope.launch {
             repository.updateNote(note)
-            firestoreSync.syncNoteToCloud(note)
+            try {
+                firestoreSync.syncNoteToCloud(note)
+            } catch (e: Exception) {}
             onSuccess()
         }
     }
@@ -162,10 +166,12 @@ class ServiceViewModel(application: Application) : AndroidViewModel(application)
     fun updateStatus(noteNumber: String, newStatus: String) {
         viewModelScope.launch {
             repository.updateStatus(noteNumber, newStatus)
-            val note = allNotes.value.find { it.noteNumber == noteNumber }
-            if (note != null) {
-                firestoreSync.syncNoteToCloud(note.copy(serviceStatus = newStatus))
-            }
+            try {
+                val note = allNotes.value.find { it.noteNumber == noteNumber }
+                if (note != null) {
+                    firestoreSync.syncNoteToCloud(note.copy(serviceStatus = newStatus))
+                }
+            } catch (e: Exception) {}
         }
     }
 
@@ -188,7 +194,9 @@ class ServiceViewModel(application: Application) : AndroidViewModel(application)
                 isVerified = true
             )
             val id = repository.addPayment(payment)
-            firestoreSync.syncPaymentToCloud(payment.copy(id = id))
+            try {
+                firestoreSync.syncPaymentToCloud(payment.copy(id = id))
+            } catch (e: Exception) {}
             onSuccess()
         }
     }
@@ -196,7 +204,9 @@ class ServiceViewModel(application: Application) : AndroidViewModel(application)
     fun deleteNote(note: ServiceNoteEntity, onDeleted: () -> Unit) {
         viewModelScope.launch {
             repository.deleteNote(note)
-            firestoreSync.deleteNoteFromCloud(note.noteNumber)
+            try {
+                firestoreSync.deleteNoteFromCloud(note.noteNumber)
+            } catch (e: Exception) {}
             onDeleted()
         }
     }
@@ -204,7 +214,9 @@ class ServiceViewModel(application: Application) : AndroidViewModel(application)
     fun updateStoreSettings(settings: StoreSettingsEntity, onSaved: () -> Unit) {
         viewModelScope.launch {
             repository.updateSettings(settings)
-            firestoreSync.syncSettingsToCloud(settings)
+            try {
+                firestoreSync.syncSettingsToCloud(settings)
+            } catch (e: Exception) {}
             onSaved()
         }
     }
