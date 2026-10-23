@@ -108,6 +108,9 @@ fun CreateEditNoteScreen(
     var notesAdditional by remember { mutableStateOf("") }
 
     var isEditMode by remember { mutableStateOf(false) }
+    var showSuccessDialog by remember { mutableStateOf(false) }
+    var successDialogMessage by remember { mutableStateOf("") }
+    var savedNoteIdToNavigate by remember { mutableStateOf(0L) }
 
     LaunchedEffect(existingNoteId) {
         if (existingNoteId != null && existingNoteId > 0) {
@@ -683,11 +686,9 @@ fun CreateEditNoteScreen(
 
                     if (isEditMode) {
                         viewModel.updateNote(noteEntity) {
-                            scope.launch {
-                                snackbarHostState.showSnackbar("Nota berhasil diperbarui!")
-                            }
-                            Toast.makeText(context, "Nota berhasil diperbarui!", Toast.LENGTH_SHORT).show()
-                            onNoteSaved(noteEntity.id)
+                            successDialogMessage = "Nota berhasil diperbarui!"
+                            savedNoteIdToNavigate = noteEntity.id
+                            showSuccessDialog = true
                         }
                     } else {
                         viewModel.saveNewNote(
@@ -696,11 +697,9 @@ fun CreateEditNoteScreen(
                             paymentMethod = paymentMethod,
                             refNumber = paymentRef
                         ) { newId ->
-                            scope.launch {
-                                snackbarHostState.showSnackbar("Nota ${noteEntity.noteNumber} berhasil dibuat dan disimpan!")
-                            }
-                            Toast.makeText(context, "Nota ${noteEntity.noteNumber} berhasil dibuat & disimpan!", Toast.LENGTH_LONG).show()
-                            onNoteSaved(newId)
+                            successDialogMessage = "Nota ${noteEntity.noteNumber} berhasil dibuat & disimpan!"
+                            savedNoteIdToNavigate = newId
+                            showSuccessDialog = true
                         }
                     }
                 },
@@ -719,6 +718,25 @@ fun CreateEditNoteScreen(
                     fontWeight = FontWeight.Bold
                 )
             }
+        }
+
+        if (showSuccessDialog) {
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = { },
+                title = { Text("Berhasil Disimpan!", fontWeight = FontWeight.Bold) },
+                text = { Text(successDialogMessage) },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showSuccessDialog = false
+                            onNoteSaved(savedNoteIdToNavigate)
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
+                    ) {
+                        Text("OK")
+                    }
+                }
+            )
         }
     }
 }

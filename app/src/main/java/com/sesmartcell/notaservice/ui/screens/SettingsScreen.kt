@@ -93,6 +93,7 @@ fun SettingsScreen(
     var bankAccounts by remember(currentSettings) { mutableStateOf(currentSettings.bankAccounts) }
     var ewalletAccounts by remember(currentSettings) { mutableStateOf(currentSettings.ewalletAccounts) }
     var warrantyTerms by remember(currentSettings) { mutableStateOf(currentSettings.warrantyTerms) }
+    var showSuccessDialog by remember { mutableStateOf(false) }
 
     val qrisPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -411,10 +412,7 @@ fun SettingsScreen(
                         warrantyTerms = warrantyTerms.trim()
                     )
                     viewModel.updateStoreSettings(updated) {
-                        scope.launch {
-                            snackbarHostState.showSnackbar("Pengaturan toko & pembayaran berhasil disimpan!")
-                        }
-                        Toast.makeText(context, "Pengaturan toko & pembayaran berhasil disimpan!", Toast.LENGTH_SHORT).show()
+                        showSuccessDialog = true
                     }
                 },
                 modifier = Modifier
@@ -466,6 +464,22 @@ fun SettingsScreen(
                     }
                 }
             }
+        }
+
+        if (showSuccessDialog) {
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = { showSuccessDialog = false },
+                title = { Text("Berhasil Disimpan!", fontWeight = FontWeight.Bold) },
+                text = { Text("Pengaturan toko & pembayaran berhasil diperbarui!") },
+                confirmButton = {
+                    Button(
+                        onClick = { showSuccessDialog = false },
+                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
+                    ) {
+                        Text("OK")
+                    }
+                }
+            )
         }
     }
 }
