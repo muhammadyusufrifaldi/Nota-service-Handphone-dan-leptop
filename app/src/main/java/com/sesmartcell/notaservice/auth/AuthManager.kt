@@ -98,29 +98,20 @@ object AuthManager {
     }
 
     fun getAppUser(context: Context): AppUser? {
-        val fbUser = currentUser
-        if (fbUser != null) {
-            return AppUser(
-                uid = fbUser.uid,
-                displayName = fbUser.displayName ?: fbUser.email ?: "Pengguna Google",
-                phoneNumber = fbUser.phoneNumber,
-                email = fbUser.email,
-                loginMethod = "GOOGLE"
-            )
-        }
-
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val isLoggedIn = prefs.getBoolean(KEY_LOGGED_IN, false)
-        if (isLoggedIn) {
-            val uid = prefs.getString(KEY_UID, "guest_admin") ?: "guest_admin"
-            val name = prefs.getString(KEY_NAME, "Operator Toko") ?: "Operator Toko"
-            val phone = prefs.getString(KEY_PHONE, "") ?: ""
-            val method = prefs.getString(KEY_METHOD, "PHONE") ?: "PHONE"
+        val fbUser = currentUser
+
+        if (isLoggedIn || fbUser != null) {
+            val uid = prefs.getString(KEY_UID, fbUser?.uid ?: "guest_admin") ?: fbUser?.uid ?: "guest_admin"
+            val name = prefs.getString(KEY_NAME, fbUser?.displayName ?: fbUser?.email ?: "Pengguna Toko") ?: "Pengguna Toko"
+            val phone = prefs.getString(KEY_PHONE, fbUser?.phoneNumber ?: "") ?: ""
+            val method = prefs.getString(KEY_METHOD, if (fbUser != null) "GOOGLE" else "PHONE") ?: "PHONE"
             return AppUser(
                 uid = uid,
                 displayName = name,
                 phoneNumber = phone.ifBlank { null },
-                email = null,
+                email = fbUser?.email,
                 loginMethod = method
             )
         }
@@ -145,7 +136,7 @@ object AuthManager {
             .putString(KEY_NAME, displayName)
             .putString(KEY_PHONE, normalizedPhone)
             .putString(KEY_METHOD, "PHONE")
-            .apply()
+            .commit()
 
         if (pin.isNotBlank()) {
             prefs.edit().putString("key_user_pin", pin).apply()
@@ -235,7 +226,7 @@ object AuthManager {
                         .putString(KEY_NAME, user.displayName ?: user.email ?: "Pengguna Google")
                         .putString(KEY_PHONE, user.phoneNumber ?: "")
                         .putString(KEY_METHOD, "GOOGLE")
-                        .apply()
+                        .commit()
                     onSuccess()
                 } else {
                     onError("Login Google berhasil tetapi akun tidak terbaca.")
