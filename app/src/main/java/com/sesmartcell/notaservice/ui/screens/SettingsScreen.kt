@@ -464,6 +464,25 @@ fun SettingsScreen(
                     }
                 }
             }
+
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Text("TENTANG APLIKASI & PENGEMBANG", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = PrimaryBlue)
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Versi Aplikasi", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("v1.0 (Final)", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Developer", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("@muhammadyusufrifaldi.dev", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
+                    }
+                }
+            }
         }
 
         if (showSuccessDialog) {

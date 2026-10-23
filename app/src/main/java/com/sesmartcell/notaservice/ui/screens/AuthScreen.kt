@@ -309,9 +309,9 @@ fun AuthScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Nota Service Manager v1.0 Final",
+                text = "Nota Service v1.0\nDeveloper: @muhammadyusufrifaldi.dev",
                 fontSize = 11.sp,
-                color = Color(0xFF64748B),
+                color = Color(0xFF93C5FD),
                 textAlign = TextAlign.Center
             )
 
