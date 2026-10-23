@@ -129,6 +129,74 @@ fun AuthScreen(
 
             Spacer(modifier = Modifier.height(22.dp))
 
+            val scope = androidx.compose.runtime.rememberCoroutineScope()
+            var isGoogleSigningIn by remember { mutableStateOf(false) }
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B).copy(alpha = 0.9f))
+            ) {
+                Column(modifier = Modifier.padding(18.dp)) {
+                    Text(
+                        "Masuk Cepat dengan Akun Google",
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        fontSize = 15.sp
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        "Login instan dan sinkronisasi data nota Anda ke cloud secara aman.",
+                        color = Color(0xFF94A3B8),
+                        fontSize = 12.sp
+                    )
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Button(
+                        onClick = {
+                            val activity = context as? android.app.Activity
+                            if (activity != null) {
+                                isGoogleSigningIn = true
+                                AuthManager.signInWithGoogle(
+                                    activity = activity,
+                                    scope = scope,
+                                    onSuccess = {
+                                        isGoogleSigningIn = false
+                                        Toast.makeText(context, "Login Google berhasil!", Toast.LENGTH_SHORT).show()
+                                        onAuthSuccess()
+                                    },
+                                    onError = { err ->
+                                        isGoogleSigningIn = false
+                                        Toast.makeText(context, err, Toast.LENGTH_LONG).show()
+                                    },
+                                    onCancelled = {
+                                        isGoogleSigningIn = false
+                                    }
+                                )
+                            } else {
+                                Toast.makeText(context, "Aktivitas tidak tersedia untuk Google Sign-In", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp)
+                            .testTag("google_login_button"),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        if (isGoogleSigningIn) {
+                            CircularProgressIndicator(modifier = Modifier.size(20.dp), color = PrimaryBlue, strokeWidth = 2.dp)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Menghubungkan Google...", color = Color.Black, fontWeight = FontWeight.Bold)
+                        } else {
+                            Text("Masuk dengan Google", color = Color.Black, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
