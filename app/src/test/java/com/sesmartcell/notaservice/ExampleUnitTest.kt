@@ -1,7 +1,7 @@
-package com.example
+package com.sesmartcell.notaservice
 
-import com.example.data.entity.ServiceNoteEntity
-import com.example.util.FormatUtils
+import com.sesmartcell.notaservice.data.entity.ServiceNoteEntity
+import com.sesmartcell.notaservice.util.FormatUtils
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

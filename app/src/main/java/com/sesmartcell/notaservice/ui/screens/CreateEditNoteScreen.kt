@@ -41,13 +41,17 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -167,7 +171,11 @@ fun CreateEditNoteScreen(
         listOf("Mati Total / No Display", "Keyboard Eror / Ngetik Sendiri", "Cepat Panas / Overheating", "Install Ulang Windows", "Baterai Not Charging", "Engsel Patah / Rusak", "Layar Bergaris")
     }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
@@ -675,6 +683,9 @@ fun CreateEditNoteScreen(
 
                     if (isEditMode) {
                         viewModel.updateNote(noteEntity) {
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Nota berhasil diperbarui!")
+                            }
                             Toast.makeText(context, "Nota berhasil diperbarui!", Toast.LENGTH_SHORT).show()
                             onNoteSaved(noteEntity.id)
                         }
@@ -685,7 +696,10 @@ fun CreateEditNoteScreen(
                             paymentMethod = paymentMethod,
                             refNumber = paymentRef
                         ) { newId ->
-                            Toast.makeText(context, "Nota ${noteEntity.noteNumber} berhasil dibuat!", Toast.LENGTH_LONG).show()
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Nota ${noteEntity.noteNumber} berhasil dibuat dan disimpan!")
+                            }
+                            Toast.makeText(context, "Nota ${noteEntity.noteNumber} berhasil dibuat & disimpan!", Toast.LENGTH_LONG).show()
                             onNoteSaved(newId)
                         }
                     }
