@@ -204,7 +204,7 @@ object ReceiptBitmapHelper {
         if (qrisBmp != null || store.bankAccounts.isNotBlank() || store.ewalletAccounts.isNotBlank()) {
             paint.color = Color.parseColor("#F8FAFC")
             paint.style = Paint.Style.FILL
-            val paymentBoxHeight = if (qrisBmp != null) 320f else 180f
+            val paymentBoxHeight = if (qrisBmp != null) 360f else 220f
             canvas.drawRoundRect(RectF(margin, yPos, rightEdge, yPos + paymentBoxHeight), 16f, 16f, paint)
             paint.color = Color.parseColor("#CBD5E1")
             paint.style = Paint.Style.STROKE
@@ -213,29 +213,46 @@ object ReceiptBitmapHelper {
             paint.style = Paint.Style.FILL
 
             paint.color = Color.parseColor("#0F172A")
-            paint.textSize = 25f
+            paint.textSize = 26f
             paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-            canvas.drawText("METODE PEMBAYARAN & QRIS", margin + 24f, yPos + 38f, paint)
+            canvas.drawText("PEMBAYARAN VIA TRANSFER & QRIS", margin + 24f, yPos + 38f, paint)
+
+            var textY = yPos + 75f
+            if (store.bankAccounts.isNotBlank()) {
+                paint.textSize = 22f
+                paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                canvas.drawText("Transfer Bank:", margin + 24f, textY, paint)
+                textY += 28f
+                paint.typeface = Typeface.DEFAULT
+                paint.textSize = 21f
+                for (line in store.bankAccounts.lines().take(4)) {
+                    canvas.drawText(line, margin + 24f, textY, paint)
+                    textY += 26f
+                }
+            }
+
+            if (store.ewalletAccounts.isNotBlank()) {
+                textY += 4f
+                paint.textSize = 22f
+                paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                canvas.drawText("E-Wallet (DANA/OVO/GoPay):", margin + 24f, textY, paint)
+                textY += 28f
+                paint.typeface = Typeface.DEFAULT
+                paint.textSize = 21f
+                for (line in store.ewalletAccounts.lines().take(3)) {
+                    canvas.drawText(line, margin + 24f, textY, paint)
+                    textY += 26f
+                }
+            }
 
             if (qrisBmp != null) {
-                val qrisDest = RectF(rightEdge - 220f, yPos + 50f, rightEdge - 20f, yPos + 300f)
+                val qrisDest = RectF(rightEdge - 240f, yPos + 60f, rightEdge - 30f, yPos + 300f)
                 canvas.drawBitmap(qrisBmp, null, qrisDest, paint)
                 paint.textSize = 18f
                 paint.typeface = Typeface.DEFAULT
-                paint.color = Color.parseColor("#475569")
-                canvas.drawText("Scan QRIS (${store.qrisMerchantName})", rightEdge - 220f, yPos + 314f, paint)
-            }
-
-            paint.textSize = 21f
-            paint.typeface = Typeface.DEFAULT
-            paint.color = Color.parseColor("#334155")
-            var textY = yPos + 75f
-            if (store.bankAccounts.isNotBlank()) {
-                canvas.drawText("Bank: ${store.bankAccounts.take(50)}", margin + 24f, textY, paint)
-                textY += 30f
-            }
-            if (store.ewalletAccounts.isNotBlank()) {
-                canvas.drawText("E-Wallet: ${store.ewalletAccounts.take(50)}", margin + 24f, textY, paint)
+                paint.textAlign = Paint.Align.CENTER
+                canvas.drawText("Scan QRIS (${store.qrisMerchantName.ifBlank { "Merchant" }})", rightEdge - 135f, yPos + 322f, paint)
+                paint.textAlign = Paint.Align.LEFT
             }
 
             yPos += paymentBoxHeight + 20f
@@ -246,23 +263,6 @@ object ReceiptBitmapHelper {
         paint.typeface = Typeface.DEFAULT
         canvas.drawText("* Segel utuh adalah syarat sah klaim garansi.", margin + 10f, yPos + 20f, paint)
         canvas.drawText("* Unit tidak diambil melebihi 60 hari di luar tanggung jawab toko.", margin + 10f, yPos + 48f, paint)
-
-        yPos += 80f
-
-        paint.color = Color.parseColor("#334155")
-        paint.textSize = 24f
-        paint.typeface = Typeface.DEFAULT
-        paint.textAlign = Paint.Align.CENTER
-
-        val signX1 = margin + 200f
-        canvas.drawText("Tanda Tangan Pelanggan", signX1, yPos + 30f, paint)
-        canvas.drawLine(signX1 - 140f, yPos + 140f, signX1 + 140f, yPos + 140f, paint)
-        canvas.drawText("(${note.customerName})", signX1, yPos + 175f, paint)
-
-        val signX2 = rightEdge - 200f
-        canvas.drawText("Teknisi / Admin", signX2, yPos + 30f, paint)
-        canvas.drawLine(signX2 - 140f, yPos + 140f, signX2 + 140f, yPos + 140f, paint)
-        canvas.drawText("(${store.storeName.ifBlank { "Konter" }})", signX2, yPos + 175f, paint)
 
         return bitmap
     }

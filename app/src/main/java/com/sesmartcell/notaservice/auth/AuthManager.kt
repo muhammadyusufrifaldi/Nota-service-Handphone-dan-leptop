@@ -4,31 +4,39 @@ import android.content.Context
 import android.util.Log
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
 data class AppUser(
     val uid: String,
+    val customUserId: String,
+    val customPassword: String,
     val displayName: String,
-    val phoneNumber: String?,
     val email: String?,
-    val loginMethod: String // "PHONE"
+    val loginMethod: String
 )
 
 object AuthManager {
 
     private const val PREFS_NAME = "se_smart_cell_auth_prefs"
-    private const val PREFS_USERS = "se_smart_cell_users_db"
     private const val KEY_LOGGED_IN = "key_is_logged_in"
     private const val KEY_UID = "key_user_uid"
+    private const val KEY_CUSTOM_USER_ID = "key_custom_user_id"
+    private const val KEY_CUSTOM_PASSWORD = "key_custom_password"
     private const val KEY_NAME = "key_user_name"
-    private const val KEY_PHONE = "key_user_phone"
-    private const val KEY_METHOD = "key_login_method"
+    private const val KEY_EMAIL = "key_user_email"
 
     val auth: FirebaseAuth
         get() = Firebase.auth
@@ -40,118 +48,134 @@ object AuthManager {
             null
         }
 
-    fun normalizePhoneNumber(phoneNumber: String): String {
-        val digits = phoneNumber.filter { it.isDigit() }
-        require(digits.length >= 8) { "Nomor handphone tidak valid" }
-        return if (digits.startsWith("0")) "+62${digits.substring(1)}" else digits
-    }
-
     fun getAppUser(context: Context): AppUser? {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val isLoggedIn = prefs.getBoolean(KEY_LOGGED_IN, false)
+        val isLoggedIn = prefs.getBoolean(KEY_LOGGED_IN, false) || currentUser != null
 
         if (isLoggedIn) {
-            val uid = prefs.getString(KEY_UID, "guest_admin") ?: "guest_admin"
-            val name = prefs.getString(KEY_NAME, "Operator Toko") ?: "Operator Toko"
-            val phone = prefs.getString(KEY_PHONE, "") ?: ""
-            val method = prefs.getString(KEY_METHOD, "PHONE") ?: "PHONE"
+            val fbUser = currentUser
+            val uid = fbUser?.uid ?: prefs.getString(KEY_UID, "user_guest") ?: "user_guest"
+            val name = fbUser?.displayName ?: prefs.getString(KEY_NAME, "Operator Toko") ?: "Operator Toko"
+            val email = fbUser?.email ?: prefs.getString(KEY_EMAIL, "")
+            val customUserId = prefs.getString(KEY_CUSTOM_USER_ID, generateUserId(uid)) ?: generateUserId(uid)
+            val customPassword = prefs.getString(KEY_CUSTOM_PASSWORD, generatePassword()) ?: generatePassword()
+
             return AppUser(
                 uid = uid,
+                customUserId = customUserId,
+                customPassword = customPassword,
                 displayName = name,
-                phoneNumber = phone.ifBlank { null },
-                email = null,
-                loginMethod = method
+                email = email,
+                loginMethod = "GOOGLE"
             )
         }
 
         return null
     }
 
-    fun registerUser(
-        context: Context,
-        phoneNumber: String,
-        ownerName: String,
-        pin: String
-    ): Result<AppUser> {
+    private fun generateUserId(uid: String): String {
+        val hash = Math.abs(uid.hashCode()) % 900000 + 100000
+        return "USER_$hash"
+    }
+
+    private fun generatePassword(): String {
+        val passNum = (100000..999999).random()
+        return "PASS_$passNum"
+    }
+
+    suspend fun signInWithGoogle(context: Context): Result<AppUser> {
         return try {
-            val normalizedPhone = normalizePhoneNumber(phoneNumber)
-            if (pin.length < 4) {
-                return Result.failure(IllegalArgumentException("PIN minimal 4 digit"))
-            }
-            val uid = "phone_${normalizedPhone.filter { it.isDigit() }}"
-            val displayName = ownerName.ifBlank { "Pemilik Toko" }
+            val serverClientId = "287361834641-j0tk7a5d30v0675jtdkhujm2t996g2nc.apps.googleusercontent.com"
+            val googleOption = GetSignInWithGoogleOption.Builder(serverClientId)
+                .build()
 
-            val prefsUsers = context.getSharedPreferences(PREFS_USERS, Context.MODE_PRIVATE)
-            prefsUsers.edit()
-                .putString("name_$normalizedPhone", displayName)
-                .putString("pin_$normalizedPhone", pin)
-                .putString("uid_$normalizedPhone", uid)
-                .commit()
+            val request = GetCredentialRequest.Builder()
+                .addCredentialOption(googleOption)
+                .build()
 
-            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            prefs.edit()
-                .putBoolean(KEY_LOGGED_IN, true)
-                .putString(KEY_UID, uid)
-                .putString(KEY_NAME, displayName)
-                .putString(KEY_PHONE, normalizedPhone)
-                .putString(KEY_METHOD, "PHONE")
-                .commit()
+            val credentialManager = CredentialManager.create(context)
+            val result = credentialManager.getCredential(context, request)
+            val credential = result.credential
 
-            Result.success(
-                AppUser(
-                    uid = uid,
-                    displayName = displayName,
-                    phoneNumber = normalizedPhone,
-                    email = null,
-                    loginMethod = "PHONE"
+            if (credential is androidx.credentials.CustomCredential &&
+                credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+            ) {
+                val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                val googleToken = googleIdTokenCredential.idToken
+                val firebaseCredential = GoogleAuthProvider.getCredential(googleToken, null)
+
+                val authResult = auth.signInWithCredential(firebaseCredential).await()
+                val firebaseUser = authResult.user ?: throw IllegalStateException("Gagal login Firebase")
+
+                val uid = firebaseUser.uid
+                val name = firebaseUser.displayName ?: "Pemilik Toko"
+                val email = firebaseUser.email
+
+                val db = Firebase.firestore
+                val userRef = db.collection("users").document(uid)
+                val snapshot = userRef.get().await()
+
+                val customUserId: String
+                val customPassword: String
+
+                if (snapshot.exists()) {
+                    customUserId = snapshot.getString("customUserId") ?: generateUserId(uid)
+                    customPassword = snapshot.getString("customPassword") ?: generatePassword()
+                } else {
+                    customUserId = generateUserId(uid)
+                    customPassword = generatePassword()
+                    val userData = mapOf(
+                        "uid" to uid,
+                        "customUserId" to customUserId,
+                        "customPassword" to customPassword,
+                        "displayName" to name,
+                        "email" to (email ?: ""),
+                        "createdAt" to com.google.firebase.Timestamp.now()
+                    )
+                    userRef.set(userData).await()
+                }
+
+                val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                prefs.edit()
+                    .putBoolean(KEY_LOGGED_IN, true)
+                    .putString(KEY_UID, uid)
+                    .putString(KEY_CUSTOM_USER_ID, customUserId)
+                    .putString(KEY_CUSTOM_PASSWORD, customPassword)
+                    .putString(KEY_NAME, name)
+                    .putString(KEY_EMAIL, email ?: "")
+                    .apply()
+
+                Result.success(
+                    AppUser(
+                        uid = uid,
+                        customUserId = customUserId,
+                        customPassword = customPassword,
+                        displayName = name,
+                        email = email,
+                        loginMethod = "GOOGLE"
+                    )
                 )
-            )
+            } else {
+                Result.failure(IllegalStateException("Kredensial Google tidak valid"))
+            }
         } catch (e: Exception) {
+            Log.e("AuthManager", "Google Sign-In error", e)
             Result.failure(e)
         }
     }
 
-    fun loginWithPhonePin(
-        context: Context,
-        phoneNumber: String,
-        pin: String
-    ): Result<AppUser> {
-        return try {
-            val normalizedPhone = normalizePhoneNumber(phoneNumber)
-            val prefsUsers = context.getSharedPreferences(PREFS_USERS, Context.MODE_PRIVATE)
-            val savedPin = prefsUsers.getString("pin_$normalizedPhone", null)
+    fun updateCustomPassword(context: Context, newPassword: String): Boolean {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val uid = prefs.getString(KEY_UID, currentUser?.uid) ?: return false
+        prefs.edit().putString(KEY_CUSTOM_PASSWORD, newPassword).apply()
 
-            if (savedPin == null) {
-                return Result.failure(IllegalStateException("Nomor HP belum terdaftar. Silakan daftar akun baru terlebih dahulu."))
-            }
-            if (savedPin != pin) {
-                return Result.failure(IllegalArgumentException("PIN Akses salah. Periksa kembali PIN Anda."))
-            }
-
-            val name = prefsUsers.getString("name_$normalizedPhone", "Pemilik Toko") ?: "Pemilik Toko"
-            val uid = prefsUsers.getString("uid_$normalizedPhone", "phone_${normalizedPhone.filter { it.isDigit() }}") ?: "phone_${normalizedPhone.filter { it.isDigit() }}"
-
-            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            prefs.edit()
-                .putBoolean(KEY_LOGGED_IN, true)
-                .putString(KEY_UID, uid)
-                .putString(KEY_NAME, name)
-                .putString(KEY_PHONE, normalizedPhone)
-                .putString(KEY_METHOD, "PHONE")
-                .commit()
-
-            Result.success(
-                AppUser(
-                    uid = uid,
-                    displayName = name,
-                    phoneNumber = normalizedPhone,
-                    email = null,
-                    loginMethod = "PHONE"
-                )
-            )
+        try {
+            val db = Firebase.firestore
+            db.collection("users").document(uid).update("customPassword", newPassword)
         } catch (e: Exception) {
-            Result.failure(e)
+            Log.e("AuthManager", "Failed updating password in Firestore", e)
         }
+        return true
     }
 
     fun signOut(
@@ -175,7 +199,7 @@ object AuthManager {
             } catch (e: Exception) {
                 Log.e("Auth", "Gagal clear credential state", e)
             } finally {
-                launch(Dispatchers.Main) {
+                withContext(Dispatchers.Main) {
                     onComplete()
                 }
             }

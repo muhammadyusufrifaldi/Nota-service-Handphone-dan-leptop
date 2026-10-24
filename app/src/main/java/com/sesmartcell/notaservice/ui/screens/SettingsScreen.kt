@@ -93,6 +93,8 @@ fun SettingsScreen(
     var ewalletAccounts by remember(currentSettings) { mutableStateOf(currentSettings.ewalletAccounts) }
     var warrantyTerms by remember(currentSettings) { mutableStateOf(currentSettings.warrantyTerms) }
     var showSuccessDialog by remember { mutableStateOf(false) }
+    var showResetPasswordDialog by remember { mutableStateOf(false) }
+    var newPasswordInput by remember { mutableStateOf("") }
 
     val qrisPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -154,57 +156,105 @@ fun SettingsScreen(
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFFEFF6FF))
             ) {
-                Row(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(14.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                        .padding(16.dp)
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(PrimaryBlue),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = (appUser?.displayName?.take(1) ?: "S").uppercase(),
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
-                            )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .clip(CircleShape)
+                                    .background(PrimaryBlue),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = (appUser?.displayName?.take(1) ?: "S").uppercase(),
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = appUser?.displayName ?: "Pemilik Toko",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    color = Color(0xFF0F172A)
+                                )
+                                Text(
+                                    text = appUser?.email ?: "Google Account",
+                                    fontSize = 11.sp,
+                                    color = Color(0xFF475569)
+                                )
+                            }
                         }
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Column {
-                            Text(
-                                text = appUser?.displayName ?: "Pemilik Toko",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 13.sp,
-                                color = Color(0xFF0F172A)
-                            )
-                            Text(
-                                text = when {
-                                    !appUser?.phoneNumber.isNullOrBlank() -> "No. HP: ${appUser.phoneNumber}"
-                                    !appUser?.email.isNullOrBlank() -> appUser.email
-                                    else -> "Mode Offline / Standalone"
-                                },
-                                fontSize = 11.sp,
-                                color = Color(0xFF475569)
-                            )
+
+                        OutlinedButton(
+                            onClick = {
+                                AuthManager.signOut(context, scope) {
+                                    Toast.makeText(context, "Berhasil keluar dari akun", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text("Keluar", fontSize = 11.sp, color = Color.Red)
                         }
                     }
 
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(1.dp)
+                            .background(Color(0xFFBFDBFE))
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text(
+                        text = "Kredensial Login Otomatis:",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp,
+                        color = Color(0xFF1E3A8A)
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "User ID: ${appUser?.customUserId ?: "-"}",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFF1E293B)
+                        )
+                        Text(
+                            text = "Password: ${appUser?.customPassword ?: "-"}",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFF1E293B)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
                     OutlinedButton(
-                        onClick = {
-                            AuthManager.signOut(context, scope) {
-                                Toast.makeText(context, "Berhasil keluar dari akun", Toast.LENGTH_SHORT).show()
-                            }
-                        },
+                        onClick = { showResetPasswordDialog = true },
+                        modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("Keluar", fontSize = 11.sp, color = Color.Red)
+                        Text("Reset / Ubah Sandi Cadangan", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
                     }
                 }
             }
@@ -485,6 +535,52 @@ fun SettingsScreen(
                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
                     ) {
                         Text("OK")
+                    }
+                }
+            )
+        }
+
+        if (showResetPasswordDialog) {
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = { showResetPasswordDialog = false; newPasswordInput = "" },
+                title = { Text("Reset / Ubah Sandi Cadangan", fontWeight = FontWeight.Bold) },
+                text = {
+                    Column {
+                        Text("Masukkan sandi baru untuk akun Anda (minimal 6 karakter):", fontSize = 13.sp)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = newPasswordInput,
+                            onValueChange = { newPasswordInput = it },
+                            label = { Text("Sandi Baru") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            if (newPasswordInput.length >= 6) {
+                                val success = AuthManager.updateCustomPassword(context, newPasswordInput.trim())
+                                if (success) {
+                                    Toast.makeText(context, "Sandi berhasil direset/diperbarui!", Toast.LENGTH_SHORT).show()
+                                    showResetPasswordDialog = false
+                                    newPasswordInput = ""
+                                } else {
+                                    Toast.makeText(context, "Gagal memperbarui sandi", Toast.LENGTH_SHORT).show()
+                                }
+                            } else {
+                                Toast.makeText(context, "Sandi minimal 6 karakter", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
+                    ) {
+                        Text("Simpan Sandi Baru")
+                    }
+                },
+                dismissButton = {
+                    androidx.compose.material3.TextButton(onClick = { showResetPasswordDialog = false; newPasswordInput = "" }) {
+                        Text("Batal")
                     }
                 }
             )

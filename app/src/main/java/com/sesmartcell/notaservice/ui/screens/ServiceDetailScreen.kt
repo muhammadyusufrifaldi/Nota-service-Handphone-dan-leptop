@@ -305,6 +305,32 @@ fun ServiceDetailScreen(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    if (sisa > 0) {
+                        Button(
+                            onClick = {
+                                viewModel.addPaymentRecord(
+                                    noteNumber = note.noteNumber,
+                                    amount = sisa,
+                                    method = "Tunai",
+                                    refNumber = "Lunas Cepat",
+                                    type = "Pelunasan"
+                                ) {
+                                    Toast.makeText(context, "Nota berhasil ditandai Lunas!", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("quick_lunas_button"),
+                            colors = ButtonDefaults.buttonColors(containerColor = StatusSuccess),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Icon(Icons.Default.Payment, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("⚡ Tandai Nota Ini Lunas", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+
                     Button(
                         onClick = { showPaymentDialog = true },
                         modifier = Modifier
