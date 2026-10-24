@@ -3,6 +3,6 @@
     <item
         android:width="66dp"
         android:height="66dp"
-        android:drawable="@drawable/se_smart_cell_logo"
+        android:drawable="@drawable/nota_service_logo"
         android:gravity="center" />
 </layer-list>

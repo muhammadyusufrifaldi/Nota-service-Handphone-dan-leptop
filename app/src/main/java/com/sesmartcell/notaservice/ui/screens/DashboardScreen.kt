@@ -363,8 +363,8 @@ fun StoreHeroHeader(
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
-                        painter = painterResource(id = R.drawable.se_smart_cell_logo),
-                        contentDescription = "Logo Toko",
+                        painter = painterResource(id = R.drawable.nota_service_logo),
+                        contentDescription = "Logo Nota Service HP & Laptop",
                         modifier = Modifier.fillMaxSize()
                     )
                 }
