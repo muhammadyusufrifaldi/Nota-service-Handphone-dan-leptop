@@ -87,7 +87,6 @@ fun SettingsScreen(
     var storePhone by remember(currentSettings) { mutableStateOf(currentSettings.storePhone) }
 
     var qrisMerchantName by remember(currentSettings) { mutableStateOf(currentSettings.qrisMerchantName) }
-    var qrisNmid by remember(currentSettings) { mutableStateOf(currentSettings.qrisNmid) }
     var qrisImagePath by remember(currentSettings) { mutableStateOf(currentSettings.qrisImagePath) }
 
     var bankAccounts by remember(currentSettings) { mutableStateOf(currentSettings.bankAccounts) }
@@ -273,16 +272,7 @@ fun SettingsScreen(
                         value = qrisMerchantName,
                         onValueChange = { qrisMerchantName = it },
                         label = { Text("Nama Merchant QRIS") },
-                        placeholder = { Text("Cth: SE SMART CELL INDONESIA") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    OutlinedTextField(
-                        value = qrisNmid,
-                        onValueChange = { qrisNmid = it },
-                        label = { Text("NMID QRIS") },
-                        placeholder = { Text("Cth: ID102030405060") },
+                        placeholder = { Text("Cth: NAMA KONTER ANDA") },
                         modifier = Modifier.fillMaxWidth()
                     )
 
@@ -299,7 +289,7 @@ fun SettingsScreen(
                         ) {
                             Icon(Icons.Default.QrCode, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("Upload QRIS")
+                            Text("Upload Foto QRIS")
                         }
 
                         if (qrisImagePath.isNotBlank()) {
@@ -338,7 +328,7 @@ fun SettingsScreen(
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Icon(Icons.Default.QrCode, contentDescription = null, modifier = Modifier.size(42.dp), tint = PrimaryBlue)
                                 Spacer(modifier = Modifier.height(8.dp))
-                                Text("Belum ada QRIS yang diupload", color = Color(0xFF475569))
+                                Text("Belum ada QRIS yang diupload", color = Color(0xFF475569), fontSize = 12.sp)
                             }
                         }
                     }
@@ -360,19 +350,19 @@ fun SettingsScreen(
                     OutlinedTextField(
                         value = bankAccounts,
                         onValueChange = { bankAccounts = it },
-                        label = { Text("Daftar Rekening Bank (BCA, Mandiri, BRI, dll)") },
-                        placeholder = { Text("Nama Bank: Nomor Rekening (a/n Pemilik)") },
+                        label = { Text("Daftar Rekening Bank Transfer") },
+                        placeholder = { Text("BCA: 1234567890 a/n Nama\nMandiri: 0987654321 a/n Nama") },
                         minLines = 3,
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
 
                     OutlinedTextField(
                         value = ewalletAccounts,
                         onValueChange = { ewalletAccounts = it },
-                        label = { Text("Akun E-Wallet (DANA, OVO, GoPay, ShopeePay)") },
-                        placeholder = { Text("Nama Layanan: Nomor HP (a/n Pemilik)") },
+                        label = { Text("Daftar Akun E-Wallet (DANA, OVO, dll)") },
+                        placeholder = { Text("DANA: 081234567890 a/n Nama\nOVO: 081234567890 a/n Nama") },
                         minLines = 3,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -405,7 +395,6 @@ fun SettingsScreen(
                         storeAddress = storeAddress.trim(),
                         storePhone = storePhone.trim(),
                         qrisMerchantName = qrisMerchantName.trim(),
-                        qrisNmid = qrisNmid.trim(),
                         qrisImagePath = qrisImagePath.trim(),
                         bankAccounts = bankAccounts.trim(),
                         ewalletAccounts = ewalletAccounts.trim(),

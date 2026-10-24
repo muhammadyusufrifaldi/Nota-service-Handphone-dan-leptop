@@ -4,6 +4,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -37,7 +38,7 @@ object ReceiptBitmapHelper {
         type: ReceiptType = ReceiptType.TAGIHAN
     ): Bitmap {
         val width = 1080
-        val height = 1800
+        val height = 2400
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
 
@@ -195,6 +196,51 @@ object ReceiptBitmapHelper {
 
         yPos += 140f
 
+        // QRIS & Payment Methods section on receipt
+        val qrisBmp = if (store.qrisImagePath.isNotBlank()) {
+            try { BitmapFactory.decodeFile(store.qrisImagePath) } catch (e: Exception) { null }
+        } else null
+
+        if (qrisBmp != null || store.bankAccounts.isNotBlank() || store.ewalletAccounts.isNotBlank()) {
+            paint.color = Color.parseColor("#F8FAFC")
+            paint.style = Paint.Style.FILL
+            val paymentBoxHeight = if (qrisBmp != null) 320f else 180f
+            canvas.drawRoundRect(RectF(margin, yPos, rightEdge, yPos + paymentBoxHeight), 16f, 16f, paint)
+            paint.color = Color.parseColor("#CBD5E1")
+            paint.style = Paint.Style.STROKE
+            paint.strokeWidth = 2f
+            canvas.drawRoundRect(RectF(margin, yPos, rightEdge, yPos + paymentBoxHeight), 16f, 16f, paint)
+            paint.style = Paint.Style.FILL
+
+            paint.color = Color.parseColor("#0F172A")
+            paint.textSize = 25f
+            paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            canvas.drawText("METODE PEMBAYARAN & QRIS", margin + 24f, yPos + 38f, paint)
+
+            if (qrisBmp != null) {
+                val qrisDest = RectF(rightEdge - 220f, yPos + 50f, rightEdge - 20f, yPos + 300f)
+                canvas.drawBitmap(qrisBmp, null, qrisDest, paint)
+                paint.textSize = 18f
+                paint.typeface = Typeface.DEFAULT
+                paint.color = Color.parseColor("#475569")
+                canvas.drawText("Scan QRIS (${store.qrisMerchantName})", rightEdge - 220f, yPos + 314f, paint)
+            }
+
+            paint.textSize = 21f
+            paint.typeface = Typeface.DEFAULT
+            paint.color = Color.parseColor("#334155")
+            var textY = yPos + 75f
+            if (store.bankAccounts.isNotBlank()) {
+                canvas.drawText("Bank: ${store.bankAccounts.take(50)}", margin + 24f, textY, paint)
+                textY += 30f
+            }
+            if (store.ewalletAccounts.isNotBlank()) {
+                canvas.drawText("E-Wallet: ${store.ewalletAccounts.take(50)}", margin + 24f, textY, paint)
+            }
+
+            yPos += paymentBoxHeight + 20f
+        }
+
         paint.color = Color.parseColor("#64748B")
         paint.textSize = 19f
         paint.typeface = Typeface.DEFAULT
@@ -216,7 +262,7 @@ object ReceiptBitmapHelper {
         val signX2 = rightEdge - 200f
         canvas.drawText("Teknisi / Admin", signX2, yPos + 30f, paint)
         canvas.drawLine(signX2 - 140f, yPos + 140f, signX2 + 140f, yPos + 140f, paint)
-        canvas.drawText("(SE SMART CELL)", signX2, yPos + 175f, paint)
+        canvas.drawText("(${store.storeName.ifBlank { "Konter" }})", signX2, yPos + 175f, paint)
 
         return bitmap
     }

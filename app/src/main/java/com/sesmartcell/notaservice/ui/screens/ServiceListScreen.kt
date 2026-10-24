@@ -1,6 +1,7 @@
 package com.sesmartcell.notaservice.ui.screens
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,7 +18,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -69,6 +72,8 @@ import com.sesmartcell.notaservice.ui.components.StatusBadge
 import com.sesmartcell.notaservice.ui.theme.PrimaryBlue
 import com.sesmartcell.notaservice.ui.theme.StatusError
 import com.sesmartcell.notaservice.util.FormatUtils
+import com.sesmartcell.notaservice.util.ReceiptBitmapHelper
+import com.sesmartcell.notaservice.util.ReceiptType
 import com.sesmartcell.notaservice.util.WhatsAppHelper
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -217,9 +222,19 @@ fun ServiceListScreen(
                             onEdit = { onNavigateToEdit(note.id) },
                             onPrint = { noteToPrint = note },
                             onDelete = { noteToDelete = note },
+                            onMarkPaid = {
+                                viewModel.markNoteAsPaid(note) {
+                                    Toast.makeText(context, "Nota ${note.noteNumber} ditandai LUNAS", Toast.LENGTH_SHORT).show()
+                                }
+                            },
                             onWhatsApp = {
-                                val msg = WhatsAppHelper.createStatusMessage(note, storeSettings, totalPaid, sisa)
-                                WhatsAppHelper.openWhatsApp(context, note.customerPhone, msg)
+                                ReceiptBitmapHelper.shareReceiptImage(
+                                    context = context,
+                                    note = note,
+                                    store = storeSettings,
+                                    totalPaid = totalPaid,
+                                    type = ReceiptType.PELUNASAN
+                                )
                             }
                         )
                     }
@@ -275,8 +290,11 @@ fun ServiceListItemCard(
     onEdit: () -> Unit,
     onPrint: () -> Unit,
     onDelete: () -> Unit,
+    onMarkPaid: () -> Unit,
     onWhatsApp: () -> Unit
 ) {
+    val context = LocalContext.current
+    val isLunas = sisa <= 0
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -332,15 +350,42 @@ fun ServiceListItemCard(
                     }
                 }
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    if (sisa > 0) {
+                        Button(
+                            onClick = onMarkPaid,
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF047857)),
+                            shape = RoundedCornerShape(8.dp),
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                            modifier = Modifier.height(30.dp).testTag("list_mark_paid_${note.noteNumber}")
+                        ) {
+                            Text("Lunas", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                        }
+                    }
+
                     IconButton(onClick = onPrint, modifier = Modifier.size(32.dp)) {
-                        Icon(Icons.Default.Print, contentDescription = "Cetak", modifier = Modifier.size(16.dp))
+                        Icon(Icons.Default.Print, contentDescription = "Cetak", tint = PrimaryBlue, modifier = Modifier.size(16.dp))
                     }
                     IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
                         Icon(Icons.Default.Edit, contentDescription = "Edit", modifier = Modifier.size(16.dp))
                     }
-                    IconButton(onClick = onWhatsApp, modifier = Modifier.size(32.dp)) {
-                        Icon(Icons.Default.Send, contentDescription = "WA", tint = Color(0xFF25D366), modifier = Modifier.size(16.dp))
+                    IconButton(
+                        onClick = {
+                            if (isLunas) {
+                                onWhatsApp()
+                            } else {
+                                Toast.makeText(context, "Nota belum lunas. Lunasi nota terlebih dahulu untuk mengirim bukti nota via WhatsApp.", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(if (isLunas) Color(0xFF25D366) else Color.LightGray)
+                    ) {
+                        Icon(Icons.Default.Send, contentDescription = "WA", tint = Color.White, modifier = Modifier.size(16.dp))
                     }
                     IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
                         Icon(Icons.Default.Delete, contentDescription = "Hapus", tint = Color.Red.copy(alpha = 0.7f), modifier = Modifier.size(16.dp))

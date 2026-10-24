@@ -155,7 +155,6 @@ class ServiceRepository(
             put("storeAddress", settings.storeAddress)
             put("storePhone", settings.storePhone)
             put("qrisMerchantName", settings.qrisMerchantName)
-            put("qrisNmid", settings.qrisNmid)
             put("bankAccounts", settings.bankAccounts)
             put("ewalletAccounts", settings.ewalletAccounts)
             put("warrantyTerms", settings.warrantyTerms)

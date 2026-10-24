@@ -118,7 +118,6 @@ object WhatsAppHelper {
             
             📲 *QRIS All Payment:*
             Merchant: *${store.qrisMerchantName}*
-            NMID: *${store.qrisNmid}*
             (Dapat menggunakan BCA Mobile, Livin, BRImo, Dana, GoPay, OVO, ShopeePay)
             
             _Mohon kirimkan foto/bukti transfer setelah melakukan pembayaran untuk segera diverifikasi oleh admin. Terima kasih._

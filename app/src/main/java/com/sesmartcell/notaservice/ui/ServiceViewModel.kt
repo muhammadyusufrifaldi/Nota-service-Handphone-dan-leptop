@@ -211,6 +211,30 @@ class ServiceViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    fun markNoteAsPaid(note: ServiceNoteEntity, onSuccess: () -> Unit = {}) {
+        viewModelScope.launch {
+            val payments = allPayments.value
+            val totalPaid = payments.filter { it.noteNumber == note.noteNumber && it.isVerified }.sumOf { it.amount }
+            val sisa = maxOf(0L, note.totalCost - totalPaid)
+            if (sisa > 0) {
+                val payment = PaymentRecordEntity(
+                    noteNumber = note.noteNumber,
+                    amount = sisa,
+                    paymentMethod = "Tunai",
+                    referenceNumber = "Pelunasan Cepat",
+                    paymentDate = System.currentTimeMillis(),
+                    paymentType = "Pelunasan",
+                    isVerified = true
+                )
+                val id = repository.addPayment(payment)
+                try {
+                    firestoreSync.syncPaymentToCloud(payment.copy(id = id))
+                } catch (e: Exception) {}
+            }
+            onSuccess()
+        }
+    }
+
     fun updateStoreSettings(settings: StoreSettingsEntity, onSaved: () -> Unit) {
         viewModelScope.launch {
             repository.updateSettings(settings)

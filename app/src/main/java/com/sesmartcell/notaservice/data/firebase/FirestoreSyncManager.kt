@@ -114,7 +114,6 @@ class FirestoreSyncManager(private val context: Context) {
                 "storeAddress" to settings.storeAddress,
                 "storePhone" to settings.storePhone,
                 "qrisMerchantName" to settings.qrisMerchantName,
-                "qrisNmid" to settings.qrisNmid,
                 "bankAccounts" to settings.bankAccounts,
                 "ewalletAccounts" to settings.ewalletAccounts,
                 "warrantyTerms" to settings.warrantyTerms,

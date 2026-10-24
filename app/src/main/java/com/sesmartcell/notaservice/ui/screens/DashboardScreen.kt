@@ -28,8 +28,10 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.MonetizationOn
+import androidx.compose.material.icons.filled.Print
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Send
+import android.widget.Toast
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -47,7 +49,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.sesmartcell.notaservice.ui.components.PrintReceiptDialog
+import com.sesmartcell.notaservice.util.ReceiptType
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -89,6 +95,8 @@ fun DashboardScreen(
     val storeSettings by viewModel.storeSettings.collectAsStateWithLifecycle()
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val selectedFilter by viewModel.selectedStatusFilter.collectAsStateWithLifecycle()
+
+    var noteToPrint by remember { mutableStateOf<ServiceNoteEntity?>(null) }
 
     val stats = remember(notes, payments) {
         viewModel.getDashboardStats(notes, payments)
@@ -266,9 +274,20 @@ fun DashboardScreen(
                         totalPaid = totalPaid,
                         sisa = sisa,
                         onClick = { onNavigateToDetail(note.id) },
-                        onSendWhatsApp = {
-                            val msg = WhatsAppHelper.createStatusMessage(note, storeSettings, totalPaid, sisa)
-                            WhatsAppHelper.openWhatsApp(context, note.customerPhone, msg)
+                        onMarkPaid = {
+                            viewModel.markNoteAsPaid(note) {
+                                Toast.makeText(context, "Nota ${note.noteNumber} ditandai LUNAS", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        onPrint = { noteToPrint = note },
+                        onWhatsApp = {
+                            ReceiptBitmapHelper.shareReceiptImage(
+                                context = context,
+                                note = note,
+                                store = storeSettings,
+                                totalPaid = totalPaid,
+                                type = ReceiptType.PELUNASAN
+                            )
                         }
                     )
                 }
@@ -290,6 +309,17 @@ fun DashboardScreen(
                 Text("Buat Nota", fontWeight = FontWeight.Bold)
             }
         }
+    }
+
+    val currentNoteToPrint = noteToPrint
+    if (currentNoteToPrint != null) {
+        val totalPaid = paymentMap[currentNoteToPrint.noteNumber]?.sumOf { it.amount } ?: 0L
+        PrintReceiptDialog(
+            note = currentNoteToPrint,
+            store = storeSettings,
+            totalPaid = totalPaid,
+            onDismiss = { noteToPrint = null }
+        )
     }
 }
 
@@ -438,8 +468,12 @@ fun DashboardNoteCard(
     totalPaid: Long,
     sisa: Long,
     onClick: () -> Unit,
-    onSendWhatsApp: () -> Unit
+    onMarkPaid: () -> Unit,
+    onPrint: () -> Unit,
+    onWhatsApp: () -> Unit
 ) {
+    val context = LocalContext.current
+    val isLunas = sisa <= 0
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -528,17 +562,50 @@ fun DashboardNoteCard(
                     }
                 }
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    if (sisa > 0) {
+                        Button(
+                            onClick = onMarkPaid,
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF047857)),
+                            shape = RoundedCornerShape(8.dp),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                            modifier = Modifier.height(32.dp).testTag("mark_paid_${note.noteNumber}")
+                        ) {
+                            Text("Lunas", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                        }
+                    }
+
                     IconButton(
-                        onClick = onSendWhatsApp,
+                        onClick = onPrint,
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Print,
+                            contentDescription = "Cetak Nota",
+                            tint = PrimaryBlue,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+
+                    IconButton(
+                        onClick = {
+                            if (isLunas) {
+                                onWhatsApp()
+                            } else {
+                                Toast.makeText(context, "Nota belum lunas. Lunasi nota terlebih dahulu untuk mengirim bukti nota via WhatsApp.", Toast.LENGTH_SHORT).show()
+                            }
+                        },
                         modifier = Modifier
                             .size(36.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFF25D366))
+                            .background(if (isLunas) Color(0xFF25D366) else Color.LightGray)
                     ) {
                         Icon(
                             Icons.Default.Send,
-                            contentDescription = "WhatsApp",
+                            contentDescription = "Kirim WhatsApp",
                             tint = Color.White,
                             modifier = Modifier.size(18.dp)
                         )
